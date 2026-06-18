@@ -1,0 +1,246 @@
+rules:
+  - name: file_read
+    description: File reads are generally safe
+    priority: 10
+    condition:
+      action_type: "file"
+      operation: "read"
+    decision: allow
+    reason: "File reads are generally safe"
+    tags: [file, read, safe]
+
+  - name: file_write_production
+    description: Production file modifications require approval
+    priority: 20
+    condition:
+      action_type: "file"
+      operation: "write"
+      tool_name:
+        regex: ".*production.*"
+    decision: require_approval
+    reason: "Production file modifications require approval"
+    tags: [file, write, production]
+
+  - name: file_delete
+    description: File deletion is prohibited by default
+    priority: 5
+    condition:
+      action_type: "file"
+      operation: "delete"
+    decision: deny
+    reason: "File deletion is prohibited by default"
+    tags: [file, delete, prohibited]
+
+  - name: payment_small
+    description: Small payments within budget
+    priority: 30
+    condition:
+      action_type: "payment"
+      operation: "transfer"
+      "parameters.amount":
+        lte: 100
+    decision: allow
+    reason: "Small payments within budget"
+    tags: [payment, small, allow]
+
+  - name: payment_medium
+    description: Medium payments require manager approval
+    priority: 31
+    condition:
+      action_type: "payment"
+      operation: "transfer"
+      "parameters.amount":
+        gt: 100
+        lte: 1000
+    decision: require_approval
+    reason: "Medium payments require manager approval"
+    tags: [payment, medium, approval]
+
+  - name: payment_large
+    description: Large payments quarantined for review
+    priority: 32
+    condition:
+      action_type: "payment"
+      operation: "transfer"
+      "parameters.amount":
+        gt: 1000
+        lte: 50000
+    decision: quarantine
+    reason: "Large payments quarantined for review"
+    tags: [payment, large, quarantine]
+
+  - name: payment_extreme
+    description: Extreme payments denied
+    priority: 33
+    condition:
+      action_type: "payment"
+      operation: "transfer"
+      "parameters.amount":
+        gt: 50000
+    decision: deny
+    reason: "Extreme payments denied"
+    tags: [payment, extreme, deny]
+
+  - name: api_get
+    description: GET requests are read-only
+    priority: 40
+    condition:
+      action_type: "api"
+      operation: "GET"
+    decision: allow
+    reason: "GET requests are read-only"
+    tags: [api, get, safe]
+
+  - name: api_post
+    description: POST requests can modify state
+    priority: 41
+    condition:
+      action_type: "api"
+      operation: "POST"
+    decision: require_approval
+    reason: "POST requests can modify state"
+    tags: [api, post, approval]
+
+  - name: api_delete
+    description: DELETE is prohibited
+    priority: 42
+    condition:
+      action_type: "api"
+      operation: "DELETE"
+    decision: deny
+    reason: "DELETE is prohibited"
+    tags: [api, delete, prohibited]
+
+  - name: database_select
+    description: SELECT queries are read-only
+    priority: 50
+    condition:
+      action_type: "database"
+      operation: "SELECT"
+    decision: allow
+    reason: "SELECT queries are read-only"
+    tags: [database, select, safe]
+
+  - name: database_insert
+    description: INSERT requires approval
+    priority: 51
+    condition:
+      action_type: "database"
+      operation: "INSERT"
+    decision: require_approval
+    reason: "INSERT requires approval"
+    tags: [database, insert, approval]
+
+  - name: database_update
+    description: UPDATE on production requires approval
+    priority: 52
+    condition:
+      action_type: "database"
+      operation: "UPDATE"
+    decision: require_approval
+    reason: "UPDATE on production requires approval"
+    tags: [database, update, approval]
+
+  - name: database_delete
+    description: DELETE is prohibited
+    priority: 53
+    condition:
+      action_type: "database"
+      operation: "DELETE"
+    decision: deny
+    reason: "DELETE is prohibited"
+    tags: [database, delete, prohibited]
+
+  - name: database_drop
+    description: DROP is always denied
+    priority: 54
+    condition:
+      action_type: "database"
+      operation: "DROP"
+    decision: deny
+    reason: "DROP is always denied"
+    tags: [database, drop, prohibited]
+
+  - name: email_send_internal
+    description: Internal emails are allowed
+    priority: 60
+    condition:
+      action_type: "email"
+      operation: "send"
+      "parameters.external": false
+    decision: allow
+    reason: "Internal emails are allowed"
+    tags: [email, internal, allow]
+
+  - name: email_send_external
+    description: External emails require approval
+    priority: 61
+    condition:
+      action_type: "email"
+      operation: "send"
+      "parameters.external": true
+    decision: require_approval
+    reason: "External emails require approval"
+    tags: [email, external, approval]
+
+  - name: security_scan_run
+    description: Security scans are allowed
+    priority: 70
+    condition:
+      action_type: "security_scan"
+      operation: "run_scan"
+    decision: allow
+    reason: "Security scans are allowed"
+    tags: [security, scan, allow]
+
+  - name: security_scan_results
+    description: Accessing scan results is allowed
+    priority: 71
+    condition:
+      action_type: "security_scan"
+      operation: "access_results"
+    decision: allow
+    reason: "Accessing scan results is allowed"
+    tags: [security, results, allow]
+
+  - name: payment_refund
+    description: Refunds require approval
+    priority: 34
+    condition:
+      action_type: "payment"
+      operation: "refund"
+    decision: require_approval
+    reason: "Refunds require approval"
+    tags: [payment, refund, approval]
+
+  - name: api_put
+    description: PUT requests require approval
+    priority: 43
+    condition:
+      action_type: "api"
+      operation: "PUT"
+    decision: require_approval
+    reason: "PUT requests require approval"
+    tags: [api, put, approval]
+
+  - name: api_patch
+    description: PATCH requests require approval
+    priority: 44
+    condition:
+      action_type: "api"
+      operation: "PATCH"
+    decision: require_approval
+    reason: "PATCH requests require approval"
+    tags: [api, patch, approval]
+
+  - name: database_insert_production
+    description: Production INSERT is quarantined
+    priority: 55
+    condition:
+      action_type: "database"
+      operation: "INSERT"
+      tool_name:
+        regex: ".*prod.*"
+    decision: quarantine
+    reason: "Production INSERT is quarantined"
+    tags: [database, production, quarantine]
