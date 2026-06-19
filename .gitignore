@@ -17,3 +17,8 @@ Thumbs.db
 .idea/
 
 *.log
+
+# AVS runtime persistence
+data/
+*.sqlite3
+*.db

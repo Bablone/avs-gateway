@@ -34,6 +34,8 @@ from avs_gateway.core.risk_engine import RiskEngine
 from avs_gateway.core.trust_memory import TrustMemory
 from avs_gateway.core.receipt_generator import ReceiptGenerator
 from avs_gateway.core.audit_chain import AuditChain
+from avs_gateway.core.approval_service import ApprovalService
+from avs_gateway.storage.sqlite_store import SqliteStore
 
 logger = logging.getLogger("avs_gateway.server")
 
@@ -104,6 +106,63 @@ class MetricsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# v0.2: Approval request/response models
+# ---------------------------------------------------------------------------
+
+
+class ApproveRequest(BaseModel):
+    """Request to approve a pending approval request."""
+
+    decided_by: str = Field(..., description="Identifier of the human approver")
+    reason: str = Field(default="", description="Optional reason for approval")
+
+
+class DenyRequest(BaseModel):
+    """Request to deny a pending approval request."""
+
+    decided_by: str = Field(..., description="Identifier of the human denier")
+    reason: str = Field(default="", description="Optional reason for denial")
+
+
+class ApprovalResponse(BaseModel):
+    """Response model for a single approval request."""
+
+    approval_id: str
+    action_id: str
+    agent_id: str
+    action_type: str
+    tool_name: str
+    operation: str
+    parameters: Dict[str, Any] = {}
+    context: Dict[str, Any] = {}
+    risk_score: float
+    trust_score: float
+    reason: str
+    status: str
+    created_at_ns: int
+    decided_at_ns: Optional[int] = None
+    decided_by: Optional[str] = None
+    decision_reason: Optional[str] = None
+
+
+class ApprovalsListResponse(BaseModel):
+    """Response model for listing approval requests."""
+
+    total: int
+    pending: int
+    approvals: List[ApprovalResponse]
+
+
+class ApprovalActionResponse(BaseModel):
+    """Response model for approve/deny actions."""
+
+    success: bool
+    approval_id: str
+    new_status: str
+    message: str
+
+
+# ---------------------------------------------------------------------------
 # Application state
 # ---------------------------------------------------------------------------
 
@@ -140,15 +199,21 @@ def get_gateway() -> Gateway:
     receipt_generator = ReceiptGenerator()
     audit_chain = AuditChain()
 
+    # v0.2: initialize SQLite store and approval service
+    store = SqliteStore()
+    store.init_schema()
+    approval_service = ApprovalService(store, trust_memory=trust_memory)
+
     gateway = Gateway(
         policy_engine=policy_engine,
         risk_engine=risk_engine,
         trust_memory=trust_memory,
         receipt_generator=receipt_generator,
         audit_chain=audit_chain,
+        approval_service=approval_service,
     )
 
-    logger.info("Gateway initialized successfully")
+    logger.info("Gateway initialized successfully (v0.2 with approval service)")
     return gateway
 
 
@@ -532,6 +597,260 @@ def metrics() -> MetricsResponse:
 
 
 # ---------------------------------------------------------------------------
+# v0.2: Approval endpoints
+# ---------------------------------------------------------------------------
+
+
+def _approval_dict_to_response(approval: Dict[str, Any]) -> ApprovalResponse:
+    """Convert a raw approval dict from sqlite_store to ApprovalResponse."""
+    return ApprovalResponse(
+        approval_id=approval["approval_id"],
+        action_id=approval["action_id"],
+        agent_id=approval["agent_id"],
+        action_type=approval["action_type"],
+        tool_name=approval["tool_name"],
+        operation=approval["operation"],
+        parameters=json.loads(approval.get("parameters_json", "{}")),
+        context=json.loads(approval.get("context_json", "{}")),
+        risk_score=approval["risk_score"],
+        trust_score=approval["trust_score"],
+        reason=approval["reason"],
+        status=approval["status"],
+        created_at_ns=approval["created_at_ns"],
+        decided_at_ns=approval.get("decided_at_ns"),
+        decided_by=approval.get("decided_by"),
+        decision_reason=approval.get("decision_reason"),
+    )
+
+
+@app.get("/approvals", response_model=ApprovalsListResponse)
+def list_approvals(
+    status_filter: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> ApprovalsListResponse:
+    """List approval requests with optional status filter.
+
+    Returns a paginated list of approval requests. If status_filter is
+    'pending', only pending approvals are returned. Otherwise all
+    approvals are returned.
+    """
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        if status_filter == "pending":
+            approvals = gateway.approval_service.list_pending()
+        else:
+            approvals = gateway.approval_service.store.list_all_approvals(
+                limit=limit, offset=offset
+            )
+
+        stats = gateway.approval_service.get_stats()
+        responses = [_approval_dict_to_response(a) for a in approvals]
+
+        return ApprovalsListResponse(
+            total=stats["total"],
+            pending=stats["pending"],
+            approvals=responses,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error in /approvals: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
+@app.get("/approvals/{approval_id}", response_model=ApprovalResponse)
+def get_approval(approval_id: str) -> ApprovalResponse:
+    """Get a single approval request by ID."""
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        approval = gateway.approval_service.get_approval(approval_id)
+        if approval is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Approval '{approval_id}' not found",
+            )
+
+        return _approval_dict_to_response(approval)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error in /approvals/%s: %s", approval_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
+@app.post("/approvals/{approval_id}/approve", response_model=ApprovalActionResponse)
+def approve_approval(
+    approval_id: str, request: ApproveRequest
+) -> ApprovalActionResponse:
+    """Approve a pending approval request.
+
+    After approval, the action can be executed via the
+    /approvals/{approval_id}/execute endpoint.
+    """
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        success = gateway.approval_service.approve(
+            approval_id, decided_by=request.decided_by, reason=request.reason
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Approval '{approval_id}' could not be approved (not found or not pending)",
+            )
+
+        return ApprovalActionResponse(
+            success=True,
+            approval_id=approval_id,
+            new_status="approved",
+            message=f"Approval approved by {request.decided_by}",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error approving %s: %s", approval_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
+@app.post("/approvals/{approval_id}/deny", response_model=ApprovalActionResponse)
+def deny_approval(
+    approval_id: str, request: DenyRequest
+) -> ApprovalActionResponse:
+    """Deny a pending approval request (blocks execution forever)."""
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        success = gateway.approval_service.deny(
+            approval_id, decided_by=request.decided_by, reason=request.reason
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Approval '{approval_id}' could not be denied (not found or not pending)",
+            )
+
+        return ApprovalActionResponse(
+            success=True,
+            approval_id=approval_id,
+            new_status="denied",
+            message=f"Approval denied by {request.decided_by}",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error denying %s: %s", approval_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
+@app.post("/approvals/{approval_id}/execute")
+def execute_approved(
+    approval_id: str,
+) -> Dict[str, Any]:
+    """Execute an approved action through the simulated tool registry.
+
+    This endpoint can only be called AFTER an approval has been
+    approved via POST /approvals/{id}/approve. It executes the
+    action exactly once; subsequent calls are replay-blocked.
+    """
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        from avs_gateway.tools.simulated_tools import ToolRegistry
+
+        tool_registry = ToolRegistry.create_default_registry()
+        result = gateway.approval_service.execute_approved_once(
+            approval_id, tool_registry
+        )
+
+        if result is None:
+            # Could be: not found, not approved, already executed, or denied
+            approval = gateway.approval_service.get_approval(approval_id)
+            if approval is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Approval '{approval_id}' not found",
+                )
+            status_str = approval.get("status", "unknown")
+            if status_str == "executed":
+                return {
+                    "executed": False,
+                    "reason": "replay_blocked",
+                    "message": "This action has already been executed",
+                }
+            if status_str == "denied":
+                return {
+                    "executed": False,
+                    "reason": "was_denied",
+                    "message": "This action was denied and cannot be executed",
+                }
+            return {
+                "executed": False,
+                "reason": f"status_is_{status_str}",
+                "message": f"Cannot execute: status is {status_str}",
+            }
+
+        return {
+            "executed": True,
+            "result": result,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error executing %s: %s", approval_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -544,4 +863,3 @@ if __name__ == "__main__":
         port=int(os.environ.get("GATEWAY_PORT", "8000")),
         reload=os.environ.get("GATEWAY_RELOAD", "").lower() in ("1", "true", "yes"),
     )
-

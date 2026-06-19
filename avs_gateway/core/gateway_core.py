@@ -100,6 +100,7 @@ class Gateway:
         receipt_generator: ReceiptGenerator,
         audit_chain: AuditChain,
         config: Optional[Dict[str, Any]] = None,
+        approval_service: Optional[Any] = None,
     ) -> None:
         """Initialize the Gateway with all required subsystems.
 
@@ -110,6 +111,7 @@ class Gateway:
             receipt_generator: Generator for signing receipts.
             audit_chain: Append-only audit chain for recording decisions.
             config: Optional configuration dictionary.
+            approval_service: Optional ApprovalService for v0.2 human approval loop.
         """
         self.policy_engine: PolicyEngine = policy_engine
         self.risk_engine: RiskEngine = risk_engine
@@ -117,6 +119,8 @@ class Gateway:
         self.receipt_generator: ReceiptGenerator = receipt_generator
         self.audit_chain: AuditChain = audit_chain
         self.config: Dict[str, Any] = config or {}
+        # v0.2: optional approval service for REQUIRE_APPROVAL lifecycle
+        self.approval_service: Optional[Any] = approval_service
 
         # Thread-safe counters
         self._lock: threading.RLock = threading.RLock()
@@ -200,6 +204,22 @@ class Gateway:
             # Step 6: Update counters
             with self._lock:
                 self._decision_counts[decision.decision_type] += 1
+
+            # v0.2: persist REQUIRE_APPROVAL to approval queue
+            if (
+                decision.decision_type == DecisionType.REQUIRE_APPROVAL
+                and self.approval_service is not None
+            ):
+                try:
+                    approval_id = self.approval_service.create_approval_request(
+                        action_request, decision
+                    )
+                    logger.info(
+                        "Approval request %s created for action %s",
+                        approval_id, action_request.action_id,
+                    )
+                except Exception as exc:
+                    logger.warning("Failed to create approval request: %s", exc)
 
             logger.info(
                 "Request %s -> %s (risk=%d, trust=%d, reason=%s)",

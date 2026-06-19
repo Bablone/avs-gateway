@@ -1,0 +1,16 @@
+{
+  "milestone": "avs-gateway-v0.2-dashboard-approval-loop",
+  "timestamp_ns": 1781826787788355400,
+  "db_path": "C:\\Users\\hp\\Downloads\\kimi_avs_gateway\\avs_gateway\\data\\avs_gateway_v02_demo.sqlite3",
+  "approval_created_by_intercept": true,
+  "pending_count_after_create": 1,
+  "dashboard_pending_visible": true,
+  "human_approve_works": true,
+  "approved_execution_once": true,
+  "replay_blocked": true,
+  "denied_execution_blocked": true,
+  "trust_updated": true,
+  "audit_persisted": true,
+  "pending_survived_restart": true,
+  "replay_blocked_after_restart": true
+}

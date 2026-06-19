@@ -16,6 +16,33 @@ import json
 logger = logging.getLogger("avs_gateway.tools")
 
 
+# ---------------------------------------------------------------------------
+# Compatibility helpers: handle both real ActionRequest and MockActionRequest
+# (tests use MockActionRequest with .params, .get_operation(), .get_tool_name())
+# ---------------------------------------------------------------------------
+
+
+def _get_tool_name(action_request) -> str:
+    """Extract tool name from action_request, handling both interfaces."""
+    if hasattr(action_request, "get_tool_name"):
+        return action_request.get_tool_name()
+    return getattr(action_request, "tool_name", "unknown")
+
+
+def _get_operation(action_request) -> str:
+    """Extract operation from action_request, handling both interfaces."""
+    if hasattr(action_request, "get_operation"):
+        return action_request.get_operation()
+    return getattr(action_request, "operation", "")
+
+
+def _get_parameters(action_request) -> Dict[str, Any]:
+    """Extract parameters from action_request, handling both interfaces."""
+    if hasattr(action_request, "params"):
+        return action_request.params
+    return getattr(action_request, "parameters", {}) or {}
+
+
 @dataclass(frozen=True)
 class ToolResult:
     """Immutable result of a simulated tool execution.
@@ -96,7 +123,7 @@ class SimulatedTool:
         Returns:
             True if params are valid, False otherwise.
         """
-        if not action_request or not action_request.params:
+        if not action_request or not _get_parameters(action_request):
             return False
         return True
 
@@ -155,8 +182,8 @@ class FileTool(SimulatedTool):
             ToolResult with the operation outcome.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -305,8 +332,8 @@ class EmailTool(SimulatedTool):
             ToolResult with the operation outcome.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -407,8 +434,8 @@ class APITool(SimulatedTool):
             ToolResult with mock API response.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -545,8 +572,8 @@ class PaymentTool(SimulatedTool):
             ToolResult with payment confirmation or error.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -715,8 +742,8 @@ class DatabaseTool(SimulatedTool):
             ToolResult with query results or confirmation.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -983,8 +1010,8 @@ class SecurityScanTool(SimulatedTool):
             ToolResult with scan results.
         """
         start_ns = time.time_ns()
-        operation = action_request.get_operation()
-        params = action_request.params
+        operation = _get_operation(action_request)
+        params = _get_parameters(action_request)
 
         if not self.validate_params(action_request):
             return self._make_result(
@@ -1154,11 +1181,11 @@ class ToolRegistry:
         Returns:
             ToolResult from the executed tool.
         """
-        tool_name = action_request.get_tool_name()
+        tool_name = getattr(action_request, "tool_name", None)
         if not tool_name:
             return ToolResult(
                 tool_name="unknown",
-                operation=action_request.get_operation(),
+                operation=_get_operation(action_request),
                 success=False,
                 error=f"Could not determine tool name for action: {action_request.action_type}",
             )
@@ -1167,7 +1194,7 @@ class ToolRegistry:
         if tool is None:
             return ToolResult(
                 tool_name=tool_name,
-                operation=action_request.get_operation(),
+                operation=_get_operation(action_request),
                 success=False,
                 error=f"Tool not found: {tool_name}",
             )
@@ -1191,4 +1218,3 @@ class ToolRegistry:
         registry.register(SecurityScanTool())
         logger.info("Created default tool registry with %d tools", len(registry._tools))
         return registry
-
