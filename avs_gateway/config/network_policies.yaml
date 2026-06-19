@@ -1,0 +1,40 @@
+# AVS Gateway v0.3.2-beta -- Network Boundary Policies
+#
+# Defines the HTTP egress security perimeter.
+# All outbound HTTP requests are validated against these rules.
+#
+# SECURITY PRINCIPLES:
+#   - Deny-by-default: Only explicitly allowlisted domains pass.
+#   - No loopback: 127.0.0.0/8 and ::1/128 are blocked unless testing.
+#   - GET-only: Mutating methods (POST/PUT/DELETE/PATCH) are denied.
+#   - No redirects: HTTP 300-399 responses are treated as blocks.
+#   - Size cap: Responses > 100KB are severed mid-stream.
+#   - Timeout: 5-second ceiling on all requests.
+#
+# WARNING: allow_loopback_for_testing should ONLY be true in CI/test
+# environments. Never enable in production.
+
+network:
+  # Domains explicitly permitted for HTTP egress.
+  # Subdomains are NOT automatically included (exact match required).
+  # Add entries as needed for your agent's legitimate external calls.
+  allowed_domains:
+    - "example.com"
+    - "api.publicdata.org"
+    - "httpbin.org"
+
+  # When true, permits requests to 127.0.0.0/8 and ::1/128.
+  # STRICTLY for local integration testing. Default: false.
+  allow_loopback_for_testing: false
+
+  # Maximum response body size in bytes.
+  # Responses exceeding this are severed mid-stream.
+  max_response_bytes: 102400  # 100 KB
+
+  # Request timeout in seconds.
+  timeout_seconds: 5
+
+  # HTTP methods permitted.
+  # v0.3.2-beta: GET only (mutating methods are too risky for autonomous agents).
+  allowed_methods:
+    - "GET"

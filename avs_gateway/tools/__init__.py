@@ -20,6 +20,11 @@ from avs_gateway.tools.file_sandbox import (
     SandboxResult,
     SandboxSecurityError,
 )
+from avs_gateway.tools.http_sandbox import (
+    HTTPSandbox,
+    HTTPSandboxResult,
+    HTTPSandboxSecurityError,
+)
 from avs_gateway.tools.real_tool_registry import (
     RealToolRegistry,
     ToolNotFoundError,
@@ -40,6 +45,9 @@ __all__ = [
     "FileSandbox",
     "SandboxResult",
     "SandboxSecurityError",
+    "HTTPSandbox",
+    "HTTPSandboxResult",
+    "HTTPSandboxSecurityError",
     "RealToolRegistry",
     "ToolNotFoundError",
 ]
