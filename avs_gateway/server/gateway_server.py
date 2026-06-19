@@ -851,6 +851,60 @@ def execute_approved(
         )
 
 
+@app.get("/approvals/{approval_id}/timeline")
+def get_approval_timeline(approval_id: str) -> Dict[str, Any]:
+    """Get the audit timeline for an approval request.
+
+    Returns all events related to the approval lifecycle:
+    approval_created, approval_approved, approval_denied,
+    approval_executed, approval_replay_blocked, trust_updated.
+
+    Args:
+        approval_id: The approval request ID.
+
+    Returns:
+        Dict with approval_id and a list of timeline events.
+    """
+    try:
+        gateway = get_gateway()
+        if gateway.approval_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Approval service not initialized",
+            )
+
+        approval = gateway.approval_service.get_approval(approval_id)
+        if approval is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Approval '{approval_id}' not found",
+            )
+
+        events = gateway.approval_service.get_approval_timeline(approval_id)
+
+        return {
+            "approval_id": approval_id,
+            "status": approval["status"],
+            "events": [
+                {
+                    "event_type": e["event_type"],
+                    "timestamp_ns": e["timestamp_ns"],
+                    "details": json.loads(e.get("details_json", "{}")),
+                }
+                for e in events
+            ],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error in /approvals/%s/timeline: %s", approval_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(exc)}",
+        )
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------

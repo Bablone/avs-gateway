@@ -7,7 +7,7 @@ Demonstrates the persistent human approval lifecycle:
 
 Usage:
     $env:PYTHONPATH = (Get-Location).Path
-    python .\demo\dashboard_approval_loop_demo.py
+    python .\\demo\\dashboard_approval_loop_demo.py
 """
 
 import json
@@ -182,6 +182,12 @@ def main() -> dict:
     print(f"    [PASS] Replay blocked: action already executed")
     assert replay_result is None
     evidence["replay_blocked"] = True
+
+    # Show full lifecycle timeline
+    print(f"\n    [TIMELINE] Approval lifecycle events:")
+    timeline = approval_svc.get_approval_timeline(approval_id)
+    for ev in timeline:
+        print(f"       {ev['event_type']:35s}  ts={ev['timestamp_ns']}")
 
     # =====================================================================
     step(7, "Second action -> REQUIRE_APPROVAL -> human DENIES")

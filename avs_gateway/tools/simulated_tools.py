@@ -33,7 +33,7 @@ def _get_operation(action_request) -> str:
     """Extract operation from action_request, handling both interfaces."""
     if hasattr(action_request, "get_operation"):
         return action_request.get_operation()
-    return getattr(action_request, "operation", "")
+    return getattr(action_request, "operation", "").lower()
 
 
 def _get_parameters(action_request) -> Dict[str, Any]:
@@ -497,10 +497,18 @@ class APITool(SimulatedTool):
         """Simulate a POST request."""
         self._call_log.append({"method": "POST", "endpoint": endpoint, "body": body, "timestamp_ns": time.time_ns()})
 
+        resource_type = endpoint.strip("/").split("/")[0] if endpoint.strip("/") else "resource"
+        resource_id = f"mock-{resource_type}-001"
+
         return self._make_result(
             operation="api_post",
             success=True,
-            result={"created": True, "endpoint": endpoint, "body": body},
+            result={
+                "status": "created",
+                "resource_id": resource_id,
+                "endpoint": endpoint,
+                "body": body,
+            },
             metadata={"method": "POST", "endpoint": endpoint, "status_code": 201},
         )
 

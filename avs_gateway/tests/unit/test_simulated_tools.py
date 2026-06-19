@@ -269,7 +269,8 @@ class TestAPITool:
         assert result.success is True
         assert result.metadata["method"] == "POST"
         assert result.metadata["status_code"] == 201
-        assert result.result["created"] is True
+        assert result.result["status"] == "created"
+        assert "resource_id" in result.result
 
     def test_api_tool_put(self):
         """APITool PUT returns updated response."""
@@ -628,4 +629,3 @@ class TestToolRegistry:
         email_req = _make_request(ActionType.EMAIL, "email", "send", {"to": "test@test.com", "subject": "s", "body": "b"})
         email_result = registry.execute(email_req)
         assert email_result.tool_name == "email"
-
