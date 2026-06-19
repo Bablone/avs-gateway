@@ -1,7 +1,7 @@
 """
-AVS Gateway Simulated Tools Package.
+AVS Gateway Tools Package.
 
-Provides in-memory tool simulations for testing and demonstration.
+Provides simulated tools (v0.1-v0.2) and real sandbox tools (v0.3+).
 """
 
 from avs_gateway.tools.simulated_tools import (
@@ -15,8 +15,18 @@ from avs_gateway.tools.simulated_tools import (
     SecurityScanTool,
     ToolRegistry,
 )
+from avs_gateway.tools.file_sandbox import (
+    FileSandbox,
+    SandboxResult,
+    SandboxSecurityError,
+)
+from avs_gateway.tools.real_tool_registry import (
+    RealToolRegistry,
+    ToolNotFoundError,
+)
 
 __all__ = [
+    # Simulated tools (v0.1-v0.2)
     "ToolResult",
     "SimulatedTool",
     "FileTool",
@@ -26,5 +36,10 @@ __all__ = [
     "DatabaseTool",
     "SecurityScanTool",
     "ToolRegistry",
+    # Real sandbox tools (v0.3+)
+    "FileSandbox",
+    "SandboxResult",
+    "SandboxSecurityError",
+    "RealToolRegistry",
+    "ToolNotFoundError",
 ]
-

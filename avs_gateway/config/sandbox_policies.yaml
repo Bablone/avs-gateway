@@ -1,0 +1,80 @@
+# AVS Gateway v0.3.0-alpha -- Sandbox-specific policies
+# These policies govern real filesystem tool execution.
+# They layer on top of the default policy engine.
+
+rules:
+  # Allow reads inside sandbox (low risk)
+  - name: sandbox_file_read
+    description: Reading files inside the sandbox is generally safe
+    priority: 10
+    condition:
+      action_type: "file"
+      operation: "read"
+      tool_name:
+        regex: ".*sandbox.*"
+    decision: allow
+    reason: "Sandbox file reads are safe"
+    tags: [sandbox, read, safe]
+
+  # Allow writes inside sandbox (medium risk -- logged)
+  - name: sandbox_file_write
+    description: Writing files inside the sandbox is allowed
+    priority: 15
+    condition:
+      action_type: "file"
+      operation: "write"
+      tool_name:
+        regex: ".*sandbox.*"
+    decision: allow
+    reason: "Sandbox file writes are allowed"
+    tags: [sandbox, write, allowed]
+
+  # List directory contents inside sandbox
+  - name: sandbox_file_list
+    description: Listing sandbox directory contents is safe
+    priority: 12
+    condition:
+      action_type: "file"
+      operation: "list"
+      tool_name:
+        regex: ".*sandbox.*"
+    decision: allow
+    reason: "Sandbox directory listing is safe"
+    tags: [sandbox, list, safe]
+
+  # DENY: file deletion (not supported in v0.3.0-alpha)
+  - name: sandbox_file_delete
+    description: File deletion is prohibited in v0.3.0-alpha
+    priority: 5
+    condition:
+      action_type: "file"
+      operation: "delete"
+    decision: deny
+    reason: "File deletion not supported in v0.3.0-alpha (safety constraint)"
+    tags: [sandbox, delete, prohibited]
+
+  # DENY: file writes outside sandbox (path traversal)
+  - name: sandbox_file_write_escape
+    description: Any file write attempt that escapes sandbox is denied
+    priority: 3
+    condition:
+      action_type: "file"
+      operation: "write"
+      context:
+        escapes_sandbox: true
+    decision: deny
+    reason: "File write escapes sandbox boundary"
+    tags: [sandbox, escape, deny]
+
+  # DENY: file reads outside sandbox
+  - name: sandbox_file_read_escape
+    description: Any file read attempt that escapes sandbox is denied
+    priority: 3
+    condition:
+      action_type: "file"
+      operation: "read"
+      context:
+        escapes_sandbox: true
+    decision: deny
+    reason: "File read escapes sandbox boundary"
+    tags: [sandbox, escape, deny]
