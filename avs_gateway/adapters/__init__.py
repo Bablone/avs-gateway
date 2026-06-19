@@ -13,6 +13,11 @@ from avs_gateway.adapters.governed import (
     is_governed,
     get_governed_metadata,
 )
+from avs_gateway.adapters.langchain_adapter import (
+    govern_langchain_tool,
+    govern_langchain_tools,
+    LANGCHAIN_AVAILABLE,
+)
 
 __all__ = [
     "BaseAdapter",
@@ -23,4 +28,7 @@ __all__ = [
     "set_default_gateway",
     "is_governed",
     "get_governed_metadata",
+    "govern_langchain_tool",
+    "govern_langchain_tools",
+    "LANGCHAIN_AVAILABLE",
 ]

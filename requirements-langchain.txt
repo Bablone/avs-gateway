@@ -1,0 +1,8 @@
+# Optional dependencies for AVS Gateway LangChain adapter (v0.3.3)
+# Install with: pip install -r requirements-langchain.txt
+#
+# These are NOT required for core AVS operation.
+# Core AVS works without LangChain installed.
+
+langchain-core>=0.1.0
+langchain>=0.1.0
