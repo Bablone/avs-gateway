@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "avs-gateway"
+version = "0.3.4"
+description = "Runtime Permission Layer for AI Agents"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "AVS Labs", email = "hello@avsgateway.io"}
+]
+keywords = [
+    "ai", "agents", "governance", "security", "audit",
+    "permissions", "sandbox", "langchain", "autonomous"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+langchain = [
+    "langchain-core>=0.1.0",
+    "langchain>=0.1.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.scripts]
+avs = "avs_gateway.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/avsgateway/avs-gateway"
+Documentation = "https://github.com/avsgateway/avs-gateway/blob/main/docs/QUICKSTART.md"
+Repository = "https://github.com/avsgateway/avs-gateway"
+Issues = "https://github.com/avsgateway/avs-gateway/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["avs_gateway*"]
+exclude = ["tests*", "demo*", "docs*", "sandbox*"]
+
+[tool.pytest.ini_options]
+testpaths = ["avs_gateway/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-q --tb=short"
