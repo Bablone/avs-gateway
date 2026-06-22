@@ -8,9 +8,13 @@ fail-closed behavior, trust memory updates, and statistics accumulation.
 
 
 from pathlib import Path
+
 import pytest
 
 from avs_gateway.models.action_request import ActionType, create_action_request
+
+# Repo-relative path to default policies (works on Windows and Linux)
+_POLICIES_YAML = str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
 from avs_gateway.core.gateway_core import Gateway, Decision, DecisionType
 from avs_gateway.core.policy_engine import PolicyEngine
 from avs_gateway.core.risk_engine import RiskEngine
@@ -28,7 +32,7 @@ def gateway():
     """Return a fully configured Gateway instance with default policies."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+        _POLICIES_YAML
     )
     return Gateway(
         policy_engine=policy_engine,

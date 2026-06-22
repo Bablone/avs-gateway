@@ -1,7 +1,7 @@
 """
-AVS Quickstart 01  Gateway Basics
+AVS Quickstart 01 — Gateway Basics
 
-Shows: intercept  decide  record  receipt
+Shows: intercept -> decide -> record -> receipt
 
 Run:
     python examples/quickstart/01_gateway_basics.py
@@ -23,8 +23,8 @@ from avs_gateway.core.audit_chain import AuditChain
 
 def main():
     print("=" * 60)
-    print("  AVS Quickstart 01  Gateway Basics")
-    print("  Intercept  Decide  Record  Receipt")
+    print("  AVS Quickstart 01 — Gateway Basics")
+    print("  Intercept -> Decide -> Record -> Receipt")
     print("=" * 60)
 
     # Build a fresh Gateway with default policies
@@ -36,7 +36,7 @@ def main():
         AuditChain(),
     )
 
-    # ---- Action 1: SAFE read  ALLOW ----
+    # ---- Action 1: SAFE read -> ALLOW ----
     print("\n[1] Safe file read (sandbox/report.txt)")
     a1 = create_action_request(
         agent_id="agent_1",
@@ -51,7 +51,7 @@ def main():
     print(f"    Reason   : {d1.reason}")
     print(f"    Receipt  : {r1.receipt_hash}")
 
-    # ---- Action 2: DANGEROUS delete  DENY ----
+    # ---- Action 2: DANGEROUS delete -> DENY ----
     print("\n[2] Dangerous delete (/etc/passwd)")
     a2 = create_action_request(
         agent_id="agent_1",
@@ -65,9 +65,9 @@ def main():
     print(f"    Decision : {d2.decision_type.value}")
     print(f"    Reason   : {d2.reason}")
     print(f"    Receipt  : {r2.receipt_hash}")
-    print(f"     Tool execution BLOCKED")
+    print(f"    -> Tool execution BLOCKED")
 
-    # ---- Action 3: Production deploy  REQUIRE_APPROVAL ----
+    # ---- Action 3: Production deploy -> REQUIRE_APPROVAL ----
     print("\n[3] Production deployment (payment-processor)")
     a3 = create_action_request(
         agent_id="agent_1",
@@ -82,7 +82,7 @@ def main():
     print(f"    Decision : {d3.decision_type.value}")
     print(f"    Reason   : {d3.reason}")
     print(f"    Receipt  : {r3.receipt_hash}")
-    print(f"     Queued for human approval")
+    print(f"    -> Queued for human approval")
 
     # ---- Evidence summary ----
     print("\n" + "=" * 60)

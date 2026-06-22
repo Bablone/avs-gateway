@@ -1,0 +1,119 @@
+# AVS MCP Guard — Default Policy
+# For normal developers and general use.
+# Balanced: allows safe operations, gates risky ones.
+
+name: mcp_default
+version: "0.4.0"
+description: "Default MCP tool-call admission policy. Allows reads, gates writes, denies destructive."
+
+global:
+  default_decision: require_approval
+  mode: enforce  # observe | soft_gate | hard_gate
+  sampling:
+    decision: deny
+    reason: "MCP sampling allows server-to-agent prompt injection. Blocked by default."
+  unknown_tools:
+    decision: quarantine
+    reason: "Tool not in cached manifest. Quarantined until reviewed."
+  manifest_drift:
+    decision: quarantine
+    reason: "Server fingerprint changed since last approval. Quarantined."
+  schema_validation_failure:
+    decision: deny
+    reason: "Arguments do not match tool schema. Malformed execution attempt."
+  shadow_tool:
+    decision: deny
+    reason: "Tool not declared in tools/list. Strict manifest adherence enforced."
+
+action_classes:
+  read_only:
+    decision: allow
+    max_risk_score: 25
+    reason: "Read-only operations are low risk."
+
+  filesystem_read:
+    decision: allow
+    max_risk_score: 25
+    path_constraints:
+      - allow_within: "./workspace"
+      - deny_absolute: true
+      - deny_parent_traversal: true
+
+  filesystem_write:
+    decision: require_approval
+    max_risk_score: 60
+    reason: "File write operations require human approval."
+    path_constraints:
+      - allow_within: "./workspace"
+      - deny_absolute: true
+      - deny_parent_traversal: true
+
+  destructive:
+    decision: deny
+    reason: "Destructive operations (delete, rm, destroy) are denied by default."
+    unless_agent_trust_at_least: high
+
+  network:
+    decision: require_approval
+    max_risk_score: 70
+    deny_private_ip: true
+    deny_cloud_metadata: true
+    deny_loopback: true
+    reason: "Network operations require approval. Private IPs and metadata endpoints blocked."
+
+  database_read:
+    decision: require_approval
+    max_risk_score: 50
+    pii_scan: true
+
+  database_write:
+    decision: require_approval
+    max_risk_score: 75
+    pii_scan: true
+
+  message_send:
+    decision: require_approval
+    max_risk_score: 60
+    pii_scan: true
+    reason: "Email/messaging operations require approval."
+
+  code_execution:
+    decision: deny
+    reason: "Code execution is denied by default."
+    unless_agent_trust_at_least: high
+
+  credential_access:
+    decision: deny
+    reason: "Credential access is denied by default."
+
+  payment_trigger:
+    decision: require_approval
+    max_risk_score: 80
+    reason: "Payment-triggering actions require approval."
+
+  deployment:
+    decision: require_approval
+    max_risk_score: 85
+    reason: "Deployment operations require approval."
+
+  unknown:
+    decision: quarantine
+    reason: "Unknown action class. Quarantined until classified."
+
+session:
+  exfiltration_guard:
+    enabled: true
+    description: "Upgrade decision if sensitive data was accessed this session"
+    trigger_tags:
+      - "SENSITIVE_DATA_ACCESSED"
+    upgrade_to: require_approval
+    applies_to_action_classes:
+      - network
+      - message_send
+      - filesystem_write
+
+receipt:
+  include_manifest_version: true
+  include_schema_validation: true
+  include_session_tags: true
+  include_server_fingerprint: true

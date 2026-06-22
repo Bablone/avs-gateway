@@ -8,7 +8,7 @@
 
 ---
 
-## What is ASR-1WARNING
+## What is ASR-1?
 
 ASR-1 (Action Standard Receipt) is a deterministic, portable, redaction-safe
 evidence object for AI agent action decisions.
@@ -31,19 +31,51 @@ actor -> intent -> policy -> decision -> execution outcome -> evidence chain
 
 ---
 
-## Why ASR-1WARNING
+## Why ASR-1?
 
 As AI agents move from text generation into real execution, the critical
 enterprise question becomes:
 
-- What did the agent attemptWARNING
-- Who or what was the accountable actorWARNING
-- Which policy appliedWARNING
-- What decision was madeWARNING
-- Did execution happenWARNING
-- Can the evidence be verified laterWARNING
+- What did the agent attempt?
+- Who or what was the accountable actor?
+- Which policy applied?
+- What decision was made?
+- Did execution happen?
+- Can the evidence be verified later?
 
 ASR-1 answers all six questions in a single structured object.
+
+---
+
+## Receipt Signing Models
+
+ASR-1 v0.3.6 uses **gateway-signed receipts** (Model 2). Future versions
+may add **witness/receiver-signed receipts** (Model 3).
+
+### Three Models
+
+| Model | Who Signs | Strength | Use Case |
+|-------|-----------|----------|----------|
+| **Agent-signed** | The agent itself | Weak -- compromised agent = compromised receipt | Not used by AVS |
+| **Gateway-signed** | AVS Gateway (independent mediator) | Strong -- independent from agent | **ASR-1 v0.3.6** |
+| **Witness-signed** | The tool/service receiving the action | Strongest -- cross-party proof | **ASR-1 v0.4+** |
+
+### Why Gateway-Signed?
+
+The Sello paper ("Notarized Agents", 2026) argues that agent-produced logs
+are structurally compromised because the entity being logged produces its own
+logs. Gateway-signed receipts solve this by having an independent mediator
+(AVS) sign the receipt, not the agent.
+
+Pipelock independently reaches the same conclusion with its "mediator receipt"
+model -- receipts signed by the security boundary, not the agent.
+
+### Future: Witness-Signed
+
+In v0.4+, ASR-1 may include witness attestations where the tool or service
+that receives the action also signs the receipt. This creates cross-party
+proof that both the gatekeeper (AVS) and the receiver (tool/service) agree
+on what happened.
 
 ---
 
@@ -150,8 +182,8 @@ ASR-1 receipts NEVER contain:
 - Private prompt contents
 
 Instead, store:
-- `parameter_hash`  SHA-256 of the canonical parameters
-- `context_hash`  SHA-256 of the execution context
+- `parameter_hash` -- SHA-256 of the canonical parameters
+- `context_hash` -- SHA-256 of the execution context
 - Classification labels
 - Evidence pointers
 
@@ -247,18 +279,75 @@ interoperate with them:
 
 ---
 
+## Alignment with External Frameworks
+
+ASR-1 is a draft AVS-native receipt profile. The following tables show
+**conceptual alignment** with external research -- not compliance claims.
+
+### ASR-1 -> RAILS (Agentic Clearing)
+
+| RAILS Primitive | ASR-1 Equivalent | Status |
+|-----------------|------------------|--------|
+| Obligation Object | ActionRequest + agent_identity | Implemented |
+| Evidence Envelope | ASR-1 Receipt (full JSON) | Implemented |
+| Verification Mesh | verify_receipt() + verify_chain() | Implemented |
+| Clearing Decision | ALLOW/DENY/REQUIRE_APPROVAL/QUARANTINE | Implemented |
+| Settlement Instruction | execution.status | Implemented |
+| Clearing Passport | AgentIdentity | Implemented |
+| Finality Rules | Policy engine (priority order, first match) | Implemented |
+
+**Note:** "RAILS alignment" means the concepts map. ASR-1 is NOT the RAILS protocol.
+
+### ASR-1 -> OWASP Agentic AI Top 10
+
+| OWASP Risk | ASR-1 Mitigation |
+|-----------|------------------|
+| ASI01: Prompt Injection | parameter_hash (no raw prompts in receipt) |
+| ASI02: Insecure Output Handling | execution.status records outcome |
+| ASI03: Training Data Poisoning | (not directly addressed -- pre-execution scope) |
+| ASI04: Denial of Service | latency_ms, execution tracking |
+| ASI05: Supply Chain | tool_manifest records tool provenance |
+| ASI06: Sensitive Information Disclosure | Redaction-safe design (no PII in receipts) |
+| ASI07: Inter-Agent Communication | agent_id + parent_agent_id tracking |
+| ASI08: Cascading Failures | receipt_hash chain links all decisions |
+| ASI09: Excessive Agency | policy_ids_evaluated shows what constrained the action |
+| ASI10: Rogue Agents | agent_public_key_fingerprint identifies the actor |
+
+**Note:** "OWASP alignment" means ASR-1 captures evidence relevant to these risks.
+ASR-1 does not PREVENT the risks -- it produces evidence that helps detect,
+investigate, and prove what happened.
+
+### ASR-1 -> MCPSHIELD (MCP Security)
+
+| MCPSHIELD Category | ASR-1 Evidence |
+|-------------------|----------------|
+| TC1: Tool Poisoning | tool_manifest records which tool was registered |
+| TC2: Data Exfiltration | context_hash captures what data was accessed |
+| TC3: Prompt Injection | action.operation records what was attempted |
+| TC4: Tool Hijacking | receipt_hash prevents tampering with evidence |
+| TC5: Privilege Escalation | agent_privilege_level records actor's scope |
+| TC6: Server Compromise | previous_receipt_hash detects chain breaks |
+| TC7: Cross-Tool Chaining | request_id links related actions |
+
+**Note:** ASR-1 provides EVIDENCE for MCP security investigations. It does not
+replace MCP-specific security controls.
+
+---
+
 ## Roadmap
 
 | Version | Feature |
 |---------|---------|
-| v0.3.6 (current) | ASR-1 draft schema, generation, verification |
-| v0.4.0 | Signed agent actions (agent keys sign requests) |
-| v0.4.1 | Tool manifest integrity enforcement |
+| v0.3.6 (current) | ASR-1 draft: gateway-signed receipts, verification, chain integrity |
+| v0.4.0 | MCP Tool Guard: tool identity, argument-level policy, ASR-1 per tool call |
+| v0.4.1 | Payment Action Guard: budget, counterparty, settlement-state receipts |
 | v0.4.2 | CloudEvents / OpenTelemetry export profiles |
-| v0.5.0 | SIEM integration, compliance mappings |
+| v0.5.0 | Witness-signed receipts: cross-party tool/service attestations |
+| v0.5.1 | Audit Export: CSV/JSON/PDF/SIEM compliance mappings |
+| v0.6.0 | Control Room: dashboard, approval queue, policy packs, team product |
 
 ---
 
 > **Every agent action gets a receipt.**
 >
-> ASR-1  Action Standard Receipt (Draft)
+> ASR-1 -- Action Standard Receipt (Draft)

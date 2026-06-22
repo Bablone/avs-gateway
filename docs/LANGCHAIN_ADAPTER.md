@@ -26,10 +26,10 @@ AVS separates governance into two distinct layers:
 The Gateway is the **semantic intercept**. It is universal.
 
 It receives an `ActionRequest` containing:
-- **tool_name**  what tool is being invoked
-- **operation**  what operation is being attempted
-- **action_type**  the category (file, api, payment, deployment, anything)
-- **context**  who, where, when, why
+- **tool_name** — what tool is being invoked
+- **operation** — what operation is being attempted
+- **action_type** — the category (file, api, payment, deployment, anything)
+- **context** — who, where, when, why
 
 And returns a **Decision**: `ALLOW`, `DENY`, `REQUIRE_APPROVAL`, `QUARANTINE`.
 
@@ -52,7 +52,7 @@ mathematically prevents it.
 
 For SaaS APIs (Stripe, Slack, Salesforce), the API provider **is** the
 sandbox. AVS governs the **authorization decision** (should this agent be
-allowed to ask Stripe to chargeWARNING). Stripe enforces the physical boundary.
+allowed to ask Stripe to charge?). Stripe enforces the physical boundary.
 
 ---
 
@@ -141,7 +141,7 @@ class DeployToProductionTool(BaseTool):
         kubectl.apply(manifest, cluster="prod")
         return "Deployed"
 
-# Wrap with AVS  same API as any other tool
+# Wrap with AVS — same API as any other tool
 governed_deploy = govern_langchain_tool(
     tool=DeployToProductionTool(),
     gateway=gateway,
@@ -150,11 +150,11 @@ governed_deploy = govern_langchain_tool(
     context={"environment": "production"},
 )
 
-# Agent uses it  AVS intercepts automatically
+# Agent uses it — AVS intercepts automatically
 result = governed_deploy.run("manifests/app.yaml")
 # If policy says REQUIRE_APPROVAL:
-#  Tool does NOT execute
-#  Returns: "[AVS PENDING] Tool 'deploy_to_production' requires approval..."
+# → Tool does NOT execute
+# → Returns: "[AVS PENDING] Tool 'deploy_to_production' requires approval..."
 ```
 
 ---
@@ -164,9 +164,9 @@ result = governed_deploy.run("manifests/app.yaml")
 ### Tool identity preserved
 
 `AVSGovernedTool` inherits from LangChain's `BaseTool` and preserves:
-- `name`  the LLM sees the original tool name
-- `description`  the LLM sees the original description
-- `args_schema`  the LLM generates correct arguments
+- `name` — the LLM sees the original tool name
+- `description` — the LLM sees the original description
+- `args_schema` — the LLM generates correct arguments
 
 The LLM decides **when** to call the tool. AVS decides **whether** it executes.
 
@@ -194,21 +194,21 @@ Consider using a different tool or asking for assistance.
 
 ---
 
-## Why Intercept at the Tool LayerWARNING
+## Why Intercept at the Tool Layer?
 
 ```
 WRONG: Intercept at LLM/prompt layer
-        Competes with AI firewalls (wrong category)
-        Prompt injection cat-and-mouse
+       → Competes with AI firewalls (wrong category)
+       → Prompt injection cat-and-mouse
 
 WRONG: Rewrite LangChain's agent loop
-        Fragile (breaks on LangChain updates)
-        High maintenance
+       → Fragile (breaks on LangChain updates)
+       → High maintenance
 
 RIGHT:  Intercept at BaseTool execution layer
-        Stable API surface
-        Same pattern works for CrewAI, AutoGen
-        Minimal coupling
+       → Stable API surface
+       → Same pattern works for CrewAI, AutoGen
+       → Minimal coupling
 ```
 
 ---

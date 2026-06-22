@@ -1,7 +1,7 @@
-# ROADMAP v0.4  Agentic Payments Guard
+# ROADMAP v0.4 — Agentic Payments Guard
 
 > **Document Version:** 0.1-draft  
-> **Status:** PLANNED  not implemented in v0.3.6  
+> **Status:** PLANNED — not implemented in v0.3.6  
 > **Target Release:** v0.4.x series  
 > **Last Updated:** 2026-07-07  
 > **Module Name:** `avs_gateway.payments_guard`  
@@ -12,7 +12,7 @@
 
 ### What This Is
 
-Agentic Payments Guard is a governance module that extends AVS's existing action-control framework to payment-aware actions. It treats payment as one action class among many  not a special case  and applies AVS's policy engine (identity verification, budget enforcement, counterparty allowlisting, replay protection, fail-closed settlement) before any payment intent reaches a settlement rail.
+Agentic Payments Guard is a governance module that extends AVS's existing action-control framework to payment-aware actions. It treats payment as one action class among many — not a special case — and applies AVS's policy engine (identity verification, budget enforcement, counterparty allowlisting, replay protection, fail-closed settlement) before any payment intent reaches a settlement rail.
 
 ### What This Is NOT
 
@@ -31,13 +31,13 @@ The market is moving fast:
 | Circle Nanopayments | Operational | Crypto-only, no unified governance |
 | Catena | "Control plane for agent payments" | Money-movement only, not general action control |
 
-**AVS's wedge:** The only open, protocol-agnostic **action control plane**  payment is one action class among many. We govern *all* actions, not just payments.
+**AVS's wedge:** The only open, protocol-agnostic **action control plane** — payment is one action class among many. We govern *all* actions, not just payments.
 
 ### Design Philosophy
 
 > "Payment is one action class. AVS governs all action classes."
 
-The Payment Guard module extends the existing `ActionRequest  Policy Engine  Decision` pipeline with payment-specific policy checks. It adds objects, checks, and enriched receipts. It does not fork the architecture.
+The Payment Guard module extends the existing `ActionRequest → Policy Engine → Decision` pipeline with payment-specific policy checks. It adds objects, checks, and enriched receipts. It does not fork the architecture.
 
 ---
 
@@ -207,10 +207,10 @@ Tracks the lifecycle of a payment through settlement.
 
 **State Transitions:**
 ```
-PENDING  SUBMITTED  CONFIRMED  (success path)
-PENDING  SUBMITTED  FAILED     (hard failure)
-PENDING  SUBMITTED  TIMEOUT    (soft failure, retry)
-PENDING  SUBMITTED  REVERSED   (chargeback / reversal)
+PENDING → SUBMITTED → CONFIRMED  (success path)
+PENDING → SUBMITTED → FAILED     (hard failure)
+PENDING → SUBMITTED → TIMEOUT    (soft failure, retry)
+PENDING → SUBMITTED → REVERSED   (chargeback / reversal)
 ```
 
 **Relationship:** Updated by the settlement adapter (outside AVS). The `settlement_capacity_available` check reads `SettlementState.state` to decide whether to ALLOW or DENY new payments.
@@ -228,7 +228,7 @@ Prevents replay attacks by ensuring each payment intent is processed exactly onc
 | Field | Type | Description |
 |-------|------|-------------|
 | `key_value` | `str` | UUIDv4 or deterministic key derived from intent |
-| `intent_hash` | `str` | `PaymentIntentHash.intent_hash`  binds key to specific intent |
+| `intent_hash` | `str` | `PaymentIntentHash.intent_hash` — binds key to specific intent |
 | `status` | `str` | `UNUSED`, `PENDING`, `COMMITTED`, `ROLLED_BACK` |
 | `first_seen_at` | `datetime` | When this key was first observed |
 | `committed_at` | `datetime` | When the key transitioned to COMMITTED |
@@ -323,7 +323,7 @@ The existing ASR-1 receipt format from v0.3.6, extended with payment-specific fi
 | `settlement_state` | `str` | `SettlementState.state` at time of decision |
 | `idempotency_key` | `str` | `IdempotencyKey.key_value` |
 | `nonce` | `str` | Consumed nonce |
-| `risk_score` | `float` | Computed composite risk score (0.01.0) |
+| `risk_score` | `float` | Computed composite risk score (0.0–1.0) |
 | `approval_ticket` | `str` | `ApprovalTicket.ticket_id` if `REQUIRE_APPROVAL` |
 | `counterparty_risk_score` | `float` | `CounterpartyPolicy.risk_score` at time of decision |
 | `counterparty_trust_tier` | `str` | `CounterpartyPolicy.trust_tier` |
@@ -345,7 +345,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `agent_identity_verified` |
 | **Description** | Verifies the agent's cryptographic identity (DID or attestation) is valid, not revoked, and matches the request. |
 | **Prevents** | Spoofed or stolen agent credentials submitting payment requests. |
-| **Decision on Failure** | `DENY`  unverified agents cannot make payment requests. |
+| **Decision on Failure** | `DENY` — unverified agents cannot make payment requests. |
 | **Implementation Note** | Delegates to existing `AgentIdentity.verify()` from v0.3.6. |
 
 ---
@@ -357,7 +357,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `user_intent_bound` |
 | **Description** | Confirms the payment action is bound to a valid, non-expired user authorization (AP2-style mandate). The user has explicitly authorized this agent to make payments on their behalf. |
 | **Prevents** | Rogue agent payments without human authorization; en AP2 mandate model. |
-| **Decision on Failure** | `DENY`  no mandate, no payment. |
+| **Decision on Failure** | `DENY` — no mandate, no payment. |
 | **Implementation Note** | Checks `ActionRequest.authorization` field (AP2 mandate token or equivalent). |
 
 ---
@@ -369,7 +369,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `amount_within_budget` |
 | **Description** | Evaluates the payment amount against all applicable `BudgetPolicy` entries. Checks per-tx, daily, and monthly limits. Updates budget state atomically. |
 | **Prevents** | Budget exhaustion attacks; agents spending beyond authorized limits. |
-| **Decision on Failure** | `DENY`  hard budget cap, no exceptions. |
+| **Decision on Failure** | `DENY` — hard budget cap, no exceptions. |
 | **Implementation Note** | Uses policy-specific matching (most specific wins). Budget update is atomic with decision to prevent race-condition overdrafts. |
 
 ---
@@ -393,7 +393,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `resource_hash_matches` |
 | **Description** | Recomputes the resource hash from the request context and compares it to the `resource_hash` in the payment request. |
 | **Prevents** | Cross-resource substitution: approved payment for cheap resource replayed against expensive resource. |
-| **Decision on Failure** | `DENY`  hash mismatch means the payment is not for the intended resource. |
+| **Decision on Failure** | `DENY` — hash mismatch means the payment is not for the intended resource. |
 | **Implementation Note** | Canonical hash computation must be deterministic across implementations. |
 
 ---
@@ -404,8 +404,8 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 |-----------|-------|
 | **Name** | `nonce_unused` |
 | **Description** | Queries `ReplayGuard.check_nonce()` to verify the nonce has not been consumed within the detection window. |
-| **Prevents** | **Replay attacks**  the critical x402 vulnerability where a valid payment proof is replayed to extract multiple payments. |
-| **Decision on Failure** | `QUARANTINE`  replayed payment is isolated for investigation, not silently processed. |
+| **Prevents** | **Replay attacks** — the critical x402 vulnerability where a valid payment proof is replayed to extract multiple payments. |
+| **Decision on Failure** | `QUARANTINE` — replayed payment is isolated for investigation, not silently processed. |
 | **Implementation Note** | `ReplayGuard.commit_nonce()` is called atomically with the ALLOW decision. If decision is not ALLOW, nonce remains available. |
 
 ---
@@ -417,8 +417,8 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `settlement_capacity_available` |
 | **Description** | Checks `SettlementState` for the target rail. If rail is in `FAILED`, `TIMEOUT`, or showing degraded latency, denies new payments. |
 | **Prevents** | Payments submitted to broken rails (guaranteed failure); double-submission during rail degradation. |
-| **Decision on Failure** | `DENY`  **fail-closed** design. Degraded rails reject new payments rather than risk loss. |
-| **Implementation Note** | Reads from settlement adapter health check. Does not wait for confirmation  makes decision on current known state. |
+| **Decision on Failure** | `DENY` — **fail-closed** design. Degraded rails reject new payments rather than risk loss. |
+| **Implementation Note** | Reads from settlement adapter health check. Does not wait for confirmation — makes decision on current known state. |
 
 ---
 
@@ -428,7 +428,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 |-----------|-------|
 | **Name** | `pii_not_leaking_in_metadata` |
 | **Description** | Scans `PaymentActionRequest.payment_metadata` for PII patterns: email addresses, phone numbers, SSN, credit card numbers, names, addresses. |
-| **Prevents** | **PII leakage in payment metadata**  the x402 demonstrated vulnerability where 97.76% of payment flows leaked sensitive data in unencrypted metadata. |
+| **Prevents** | **PII leakage in payment metadata** — the x402 demonstrated vulnerability where 97.76% of payment flows leaked sensitive data in unencrypted metadata. |
 | **Decision on Failure** | `DENY` or `REQUIRE_APPROVAL` based on severity classification. |
 | **Implementation Note** | Uses regex + ML-based PII detection. Results recorded in receipt `pii_scan_result`. |
 
@@ -441,7 +441,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `human_approval_required_above_threshold` |
 | **Description** | If the composite risk score (from counterparty risk, amount, agent history, metadata scan) exceeds a configurable threshold, requires human approval. |
 | **Prevents** | High-value/high-risk payments without human oversight. |
-| **Decision on Trigger** | `REQUIRE_APPROVAL`  creates `ApprovalTicket`, payment held pending. |
+| **Decision on Trigger** | `REQUIRE_APPROVAL` — creates `ApprovalTicket`, payment held pending. |
 | **Implementation Note** | Composite risk score formula is configurable per deployment. Default: `risk = 0.4 * counterparty_risk + 0.3 * amount_risk + 0.2 * agent_history_risk + 0.1 * metadata_risk`. |
 
 ---
@@ -453,7 +453,7 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 | **Name** | `fail_closed_on_settlement_uncertainty` |
 | **Description** | If any settlement-state query returns an error, timeout, or ambiguous result, the check fails. |
 | **Prevents** | Payments approved based on stale or unknown settlement state. |
-| **Decision on Failure** | `DENY`  **fail-closed by design**. Uncertainty is treated as "unsafe." |
+| **Decision on Failure** | `DENY` — **fail-closed by design**. Uncertainty is treated as "unsafe." |
 | **Implementation Note** | This is the final check in the chain. It ensures the pipeline fails safely even when dependencies are unavailable. |
 
 ---
@@ -461,16 +461,16 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 ### Check Evaluation Order
 
 ```
-1. agent_identity_verified           DENY if fail
-2. user_intent_bound                 DENY if fail
-3. nonce_unused                      QUARANTINE if fail
-4. pii_not_leaking_in_metadata       DENY or REQUIRE_APPROVAL if fail
-5. merchant_allowed                  DENY or QUARANTINE or REQUIRE_APPROVAL if fail
-6. amount_within_budget              DENY if fail
-7. resource_hash_matches             DENY if fail
-8. settlement_capacity_available     DENY if fail
-9. human_approval_required_above_threshold  REQUIRE_APPROVAL if triggered
-10. fail_closed_on_settlement_uncertainty   DENY if fail
+1. agent_identity_verified          → DENY if fail
+2. user_intent_bound                → DENY if fail
+3. nonce_unused                     → QUARANTINE if fail
+4. pii_not_leaking_in_metadata      → DENY or REQUIRE_APPROVAL if fail
+5. merchant_allowed                 → DENY or QUARANTINE or REQUIRE_APPROVAL if fail
+6. amount_within_budget             → DENY if fail
+7. resource_hash_matches            → DENY if fail
+8. settlement_capacity_available    → DENY if fail
+9. human_approval_required_above_threshold → REQUIRE_APPROVAL if triggered
+10. fail_closed_on_settlement_uncertainty  → DENY if fail
 ```
 
 > **Rationale for order:** Identity and intent are verified first (cheap, deterministic). Replay detection comes early to prevent wasting resources on known-bad requests. Budget check is after merchant check so that budget is not consumed for blocked merchants. Settlement checks are late because they depend on external state. Human approval is the final gating step before ALLOW.
@@ -481,29 +481,29 @@ Each check is evaluated by the Policy Engine in a defined order. All checks must
 
 | # | Scenario | Setup | Expected AVS Decision | What It Proves |
 |---|----------|-------|----------------------|----------------|
-| 1 | Approved agent pays 0.03 for API data | Agent: verified, 100/day budget; Counterparty: T1 trusted; Amount: 0.03; Rail: healthy | `ALLOW` | Normal payment flow  baseline happy path |
-| 2 | Agent pays approved agent for service | Agent A (buyer): verified; Agent B (seller): verified, T2 trust; Amount: 5.00 | `ALLOW` | Agent-to-agent payment  extends to multi-agent economies |
-| 3 | Agent exceeds daily budget | Agent: 10.00/day spent, requesting 5.00 when limit is 10.00/day | `DENY` | **Budget policy enforcement**  hard cap, no exceptions |
-| 4 | Agent replays old payment proof | Same idempotency key and nonce as a previous ALLOWED payment | `QUARANTINE` | **Replay attack prevention**  x402 vulnerability countermeasure |
-| 5 | Agent hits unregistered merchant endpoint | Counterparty: not in `CounterpartyPolicy` registry | `QUARANTINE` | **Counterparty policy**  unknown merchants isolated, not silently processed |
-| 6 | Settlement rail unavailable | Rail status: `TIMEOUT`, latency > degraded threshold | `DENY` | **Fail-closed design**  broken rails reject payments, not accept them |
-| 7 | Payment metadata leaks PII | Metadata contains email address `user@example.com` | `DENY` or `REQUIRE_APPROVAL` | **Privacy guard**  x402 PII leakage countermeasure |
+| 1 | Approved agent pays £0.03 for API data | Agent: verified, £100/day budget; Counterparty: T1 trusted; Amount: £0.03; Rail: healthy | `ALLOW` | Normal payment flow — baseline happy path |
+| 2 | Agent pays approved agent for service | Agent A (buyer): verified; Agent B (seller): verified, T2 trust; Amount: £5.00 | `ALLOW` | Agent-to-agent payment — extends to multi-agent economies |
+| 3 | Agent exceeds daily budget | Agent: £10.00/day spent, requesting £5.00 when limit is £10.00/day | `DENY` | **Budget policy enforcement** — hard cap, no exceptions |
+| 4 | Agent replays old payment proof | Same idempotency key and nonce as a previous ALLOWED payment | `QUARANTINE` | **Replay attack prevention** — x402 vulnerability countermeasure |
+| 5 | Agent hits unregistered merchant endpoint | Counterparty: not in `CounterpartyPolicy` registry | `QUARANTINE` | **Counterparty policy** — unknown merchants isolated, not silently processed |
+| 6 | Settlement rail unavailable | Rail status: `TIMEOUT`, latency > degraded threshold | `DENY` | **Fail-closed design** — broken rails reject payments, not accept them |
+| 7 | Payment metadata leaks PII | Metadata contains email address `user@example.com` | `DENY` or `REQUIRE_APPROVAL` | **Privacy guard** — x402 PII leakage countermeasure |
 
 ### Scenario Execution Matrix
 
 | Check | Scenario 1 | Scenario 2 | Scenario 3 | Scenario 4 | Scenario 5 | Scenario 6 | Scenario 7 |
 |-------|:----------:|:----------:|:----------:|:----------:|:----------:|:----------:|:----------:|
-| agent_identity_verified |  |  |  |  |  |  |  |
-| user_intent_bound |  |  |  |  |  |  |  |
-| nonce_unused |  |  |  |  |  |  |  |
-| pii_not_leaking |  |  |  |  |  |  |  |
-| merchant_allowed |  |  |  |  |  |  |  |
-| amount_within_budget |  |  |  |  |  |  |  |
-| resource_hash_matches |  |  |  |  |  |  |  |
-| settlement_capacity |  |  |  |  |  |  |  |
+| agent_identity_verified | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| user_intent_bound | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| nonce_unused | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| pii_not_leaking | ✅ | ✅ | ✅ | — | — | — | ❌ |
+| merchant_allowed | ✅ | ✅ | ✅ | — | ❌ | ✅ | — |
+| amount_within_budget | ✅ | ✅ | ❌ | — | — | ✅ | — |
+| resource_hash_matches | ✅ | ✅ | — | — | — | ✅ | — |
+| settlement_capacity | ✅ | ✅ | — | — | — | ❌ | — |
 | **Decision** | **ALLOW** | **ALLOW** | **DENY** | **QUARANTINE** | **QUARANTINE** | **DENY** | **DENY** |
 
->  = check failure (first failure determines outcome).  = not reached (short-circuit).
+> ❌ = check failure (first failure determines outcome). — = not reached (short-circuit).
 
 ---
 
@@ -588,22 +588,22 @@ When the Policy Engine evaluates a `PaymentActionRequest`, it produces an enrich
 
 The `avs receipt verify` command (existing in v0.3.6) will verify:
 
-1. **Signature validity**  Ed25519 signature over `audit_hash`
-2. **Audit hash integrity**  SHA-256 of canonicalized receipt content
-3. **Payment intent hash**  Recompute and compare `payment_intent_hash`
-4. **Policy hash**  Verify against current policy (or historical policy at receipt timestamp)
-5. **Idempotency key**  Verify key exists in `ReplayGuard` and is `COMMITTED`
-6. **Budget consistency**  `budget_remaining_before - amount == budget_remaining_after` (for ALLOW)
-7. **Nonce consumed**  Verify nonce is in `ReplayGuard` registry
-8. **Decision consistency**  All `reasons` align with the final `decision`
+1. **Signature validity** — Ed25519 signature over `audit_hash`
+2. **Audit hash integrity** — SHA-256 of canonicalized receipt content
+3. **Payment intent hash** — Recompute and compare `payment_intent_hash`
+4. **Policy hash** — Verify against current policy (or historical policy at receipt timestamp)
+5. **Idempotency key** — Verify key exists in `ReplayGuard` and is `COMMITTED`
+6. **Budget consistency** — `budget_remaining_before - amount == budget_remaining_after` (for ALLOW)
+7. **Nonce consumed** — Verify nonce is in `ReplayGuard` registry
+8. **Decision consistency** — All `reasons` align with the final `decision`
 
 ### Receipt as Legal Evidence
 
 The enriched ASR-1 receipt serves as:
-- **Audit trail**  tamper-evident record of why a payment was allowed/denied
-- **Dispute resolution**  evidence that governance rules were followed
-- **Compliance proof**  demonstrates budget controls, counterparty checks, privacy scanning
-- **Forensic artifact**  replay detection and quarantine records for incident investigation
+- **Audit trail** — tamper-evident record of why a payment was allowed/denied
+- **Dispute resolution** — evidence that governance rules were followed
+- **Compliance proof** — demonstrates budget controls, counterparty checks, privacy scanning
+- **Forensic artifact** — replay detection and quarantine records for incident investigation
 
 ---
 
@@ -612,91 +612,91 @@ The enriched ASR-1 receipt serves as:
 ### Component Diagram
 
 ```
-          
-   Agent        ActionRequest       AVS Gateway      
-  (any)              (existing)               (existing)       
-          
-                                                       
-                                                       
-                                          
-                                               Policy Engine       
-                                               (existing v0.3.6)   
-                                                                   
-                                              
-                                              Payment Guard      
-                                              Module (v0.4.x)    
-                                                                 
-                                                  
-                                                 Budget        
-                                                 Policy        
-                                                 Engine        
-                                                  
-                                                                 
-                                                  
-                                               Counterparty    
-                                                 Policy        
-                                                  
-                                                                 
-                                                  
-                                                Settlement     
-                                                 Monitor       
-                                                  
-                                                                 
-                                                  
-                                                ReplayGuard    
-                                                 (nonce)       
-                                                  
-                                                                 
-                                                  
-                                                PII Scanner    
-                                                  
-                                                                 
-                                                  
-                                                 Approval      
-                                                 Ticket        
-                                                 Manager       
-                                                  
-                                              
-                                          
-                                                       
-                                                       
-                                          
-                                              Decision (ALLOW/     
-                                              DENY/REQUIRE_        
-                                              APPROVAL/QUARANTINE) 
-                                          
-                                                       
-                                                       
-                                          
-                                            ASR-1 Receipt          
-                                            (enriched, signed)     
-                                          
-                                                       
-                                                       
-                                          
-                                            Execute (if ALLOW)     
-                                            or Hold (if PENDING)   
-                                          
+┌──────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│   Agent      │────▶│  ActionRequest   │────▶│    AVS Gateway      │
+│  (any)       │     │  (existing)      │     │    (existing)       │
+└──────────────┘     └──────────────────┘     └─────────────────────┘
+                                                       │
+                                                       ▼
+                                          ┌─────────────────────────┐
+                                          │     Policy Engine       │
+                                          │     (existing v0.3.6)   │
+                                          │                         │
+                                          │  ┌───────────────────┐  │
+                                          │  │  Payment Guard    │  │
+                                          │  │  Module (v0.4.x)  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │   Budget    │  │  │
+                                          │  │  │   Policy    │  │  │
+                                          │  │  │   Engine    │  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │ Counterparty│  │  │
+                                          │  │  │   Policy    │  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │  Settlement │  │  │
+                                          │  │  │   Monitor   │  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │  ReplayGuard│  │  │
+                                          │  │  │   (nonce)   │  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │  PII Scanner│  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  │                   │  │
+                                          │  │  ┌─────────────┐  │  │
+                                          │  │  │   Approval  │  │  │
+                                          │  │  │   Ticket    │  │  │
+                                          │  │  │   Manager   │  │  │
+                                          │  │  └─────────────┘  │  │
+                                          │  └───────────────────┘  │
+                                          └─────────────────────────┘
+                                                       │
+                                                       ▼
+                                          ┌─────────────────────────┐
+                                          │    Decision (ALLOW/     │
+                                          │    DENY/REQUIRE_        │
+                                          │    APPROVAL/QUARANTINE) │
+                                          └─────────────────────────┘
+                                                       │
+                                                       ▼
+                                          ┌─────────────────────────┐
+                                          │  ASR-1 Receipt          │
+                                          │  (enriched, signed)     │
+                                          └─────────────────────────┘
+                                                       │
+                                                       ▼
+                                          ┌─────────────────────────┐
+                                          │  Execute (if ALLOW)     │
+                                          │  or Hold (if PENDING)   │
+                                          └─────────────────────────┘
 ```
 
 ### Data Flow
 
 ```
 1. Agent submits ActionRequest for payment tool
-   
+   ↓
 2. AVS Gateway detects payment tool (via ToolManifest tags)
-   
+   ↓
 3. Gateway wraps ActionRequest in PaymentActionRequest
-   
+   ↓
 4. Policy Engine evaluates all 10 checks in order
-   
+   ↓
 5. If ALLOW: commit nonce, update budget, produce receipt
    If DENY: produce receipt with failure reasons
    If REQUIRE_APPROVAL: create ApprovalTicket, produce receipt
    If QUARANTINE: produce receipt, alert security
-   
+   ↓
 6. Receipt returned to agent
-   
+   ↓
 7. If ALLOW: agent may proceed to payment rail
    If DENY: agent must not proceed
    If REQUIRE_APPROVAL: agent must wait for human approval
@@ -734,28 +734,28 @@ The Payment Guard module builds on v0.3.6 components. It does not replace them.
 
 ```
 v0.3.6 (locked)
-    
-     ASR-1 Receipt format extended (backward-compatible)
-     ToolManifest tags extended (backward-compatible)
-     Policy Engine plugin registration added
-    
-    
+    │
+    ├── ASR-1 Receipt format extended (backward-compatible)
+    ├── ToolManifest tags extended (backward-compatible)
+    ├── Policy Engine plugin registration added
+    │
+    ▼
 v0.4.0-alpha (Payment Guard module available, opt-in)
-    
-     Payment Guard can be enabled per-agent or globally
-     Without Payment Guard, behavior is identical to v0.3.6
-    
-    
+    │
+    ├── Payment Guard can be enabled per-agent or globally
+    ├── Without Payment Guard, behavior is identical to v0.3.6
+    │
+    ▼
 v0.4.0 (Payment Guard default-enabled for payment tools)
-    
-     All payment tools automatically use Payment Guard
-     Non-payment tools unchanged
-    
-    
+    │
+    ├── All payment tools automatically use Payment Guard
+    ├── Non-payment tools unchanged
+    │
+    ▼
 v0.4.x (iterative enhancement)
-     Additional payment rails
-     Additional policy check types
-     Performance optimization
+    ├── Additional payment rails
+    ├── Additional policy check types
+    └── Performance optimization
 ```
 
 ---
@@ -766,25 +766,25 @@ Explicit boundaries to prevent scope creep:
 
 | Capability | Status | Why NOT in Payment Guard |
 |-----------|--------|-------------------------|
-| **Wallet implementation** |  Out of scope | AVS does not hold funds. Wallets are the responsibility of agents or owner applications. |
-| **Settlement processing** |  Out of scope | AVS does not submit transactions to payment rails. It governs whether the agent *may* attempt settlement. |
-| **Replace x402** |  Out of scope | x402 is a payment rail. AVS governs actions that may use x402, but does not replace the protocol. |
-| **Replace AP4M / ACP / AP2 / TAP** |  Out of scope | These are payment protocols and standards. AVS is governance-agnostic  it can govern actions on any rail. |
-| **Move money** |  Out of scope | No money movement. No escrow. No payment processing. |
-| **Implement a new payment protocol** |  Out of scope | AVS is not a payment protocol. It is an action governance framework. |
+| **Wallet implementation** | ❌ Out of scope | AVS does not hold funds. Wallets are the responsibility of agents or owner applications. |
+| **Settlement processing** | ❌ Out of scope | AVS does not submit transactions to payment rails. It governs whether the agent *may* attempt settlement. |
+| **Replace x402** | ❌ Out of scope | x402 is a payment rail. AVS governs actions that may use x402, but does not replace the protocol. |
+| **Replace AP4M / ACP / AP2 / TAP** | ❌ Out of scope | These are payment protocols and standards. AVS is governance-agnostic — it can govern actions on any rail. |
+| **Move money** | ❌ Out of scope | No money movement. No escrow. No payment processing. |
+| **Implement a new payment protocol** | ❌ Out of scope | AVS is not a payment protocol. It is an action governance framework. |
 
 ### What It DOES Do
 
 | Capability | Status | Description |
 |-----------|--------|-------------|
-| **Govern payment actions** |  Core | Decides whether a payment action may proceed (ALLOW/DENY/REQUIRE_APPROVAL/QUARANTINE). |
-| **Enforce budget policies** |  Core | Hard spending limits per agent, per tool, per merchant, per period. |
-| **Control counterparties** |  Core | Allowlist/blocklist merchants; risk-score unknown counterparties. |
-| **Prevent replay attacks** |  Core | Nonce-based replay detection  direct countermeasure to x402 vulnerability. |
-| **Fail-closed on settlement issues** |  Core | Deny payments when settlement rails are degraded. |
-| **Prevent PII leakage** |  Core | Scan payment metadata for sensitive data. |
-| **Require human approval** |  Core | Hold high-risk payments for human review. |
-| **Produce tamper-evident receipts** |  Core | Enriched ASR-1 receipts with payment fields for audit and compliance. |
+| **Govern payment actions** | ✅ Core | Decides whether a payment action may proceed (ALLOW/DENY/REQUIRE_APPROVAL/QUARANTINE). |
+| **Enforce budget policies** | ✅ Core | Hard spending limits per agent, per tool, per merchant, per period. |
+| **Control counterparties** | ✅ Core | Allowlist/blocklist merchants; risk-score unknown counterparties. |
+| **Prevent replay attacks** | ✅ Core | Nonce-based replay detection — direct countermeasure to x402 vulnerability. |
+| **Fail-closed on settlement issues** | ✅ Core | Deny payments when settlement rails are degraded. |
+| **Prevent PII leakage** | ✅ Core | Scan payment metadata for sensitive data. |
+| **Require human approval** | ✅ Core | Hold high-risk payments for human review. |
+| **Produce tamper-evident receipts** | ✅ Core | Enriched ASR-1 receipts with payment fields for audit and compliance. |
 
 ---
 
@@ -841,38 +841,38 @@ Explicit boundaries to prevent scope creep:
 The Payment Guard module fills the **"during action"** gap in the three-moment governance model:
 
 ```
-
-                    THREE-MOMENT FRAMEWORK                           
-
-                                                                     
-  BEFORE ACTION                DURING ACTION              AFTER      
-  (v0.3.6)                     (v0.4.x)                   (v0.3.6)  
-                                                                     
-                     
-    Intent                  Reservation             ASR-1    
-    Validated               Locking                 Receipt  
-    Identity     Idempotency      Signed   
-    Authorized              Budget Check            Stored   
-    Budget                  Counterparty                     
-    Pre-check               Verified                         
-               Settlement OK          
-                              Nonce Fresh                        
-                              PII Clean                          
-                              Human OK                           
-                                                
-                                                                     
-  Decision:                    Decision:                 Record:   
-  ALLOW / DENY /               ALLOW (with locks) /      Evidence  
-  REQUIRE_APPROVAL /           DENY /                    of         
-  QUARANTINE                   REQUIRE_APPROVAL /        governance 
-                               QUARANTINE                decision   
-                                                                     
-
+┌─────────────────────────────────────────────────────────────────────┐
+│                    THREE-MOMENT FRAMEWORK                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  BEFORE ACTION                DURING ACTION              AFTER      │
+│  (v0.3.6)                     (v0.4.x)                   (v0.3.6)  │
+│                                                                     │
+│  ┌─────────────┐           ┌─────────────────┐       ┌──────────┐ │
+│  │  Intent     │           │  Reservation    │       │  ASR-1   │ │
+│  │  Validated  │           │  Locking        │       │  Receipt │ │
+│  │  Identity   │──────────▶│  Idempotency    │──────▶│  Signed  │ │
+│  │  Authorized │           │  Budget Check   │       │  Stored  │ │
+│  │  Budget     │           │  Counterparty   │       │          │ │
+│  │  Pre-check  │           │  Verified       │       │          │ │
+│  └─────────────┘           │  Settlement OK  │       └──────────┘ │
+│                            │  Nonce Fresh    │                    │
+│                            │  PII Clean      │                    │
+│                            │  Human OK       │                    │
+│                            └─────────────────┘                    │
+│                                                                     │
+│  Decision:                    Decision:                 Record:   │
+│  ALLOW / DENY /               ALLOW (with locks) /      Evidence  │
+│  REQUIRE_APPROVAL /           DENY /                    of         │
+│  QUARANTINE                   REQUIRE_APPROVAL /        governance │
+│                               QUARANTINE                decision   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Moment-by-Moment Breakdown
 
-#### Moment 1: BEFORE  AVS Decides (v0.3.6)
+#### Moment 1: BEFORE — AVS Decides (v0.3.6)
 
 - Agent submits `ActionRequest`
 - AVS validates identity, authorization, basic policies
@@ -880,7 +880,7 @@ The Payment Guard module fills the **"during action"** gap in the three-moment g
 - For non-payment tools: this is the complete pipeline
 - For payment tools: if ALLOW, proceed to Moment 2
 
-#### Moment 2: DURING  Payment Guard Manages (v0.4.x)
+#### Moment 2: DURING — Payment Guard Manages (v0.4.x)
 
 - Payment Guard takes the ALLOWed `PaymentActionRequest`
 - Performs detailed checks: budget, counterparty, settlement, replay, PII, human approval
@@ -891,7 +891,7 @@ The Payment Guard module fills the **"during action"** gap in the three-moment g
 - If all checks pass: releases lock, produces enriched receipt
 - If any check fails: rolls back reservations, produces receipt with failure reason
 
-#### Moment 3: AFTER  ASR-1 Receipt Records Evidence (v0.3.6 + v0.4.x enrichment)
+#### Moment 3: AFTER — ASR-1 Receipt Records Evidence (v0.3.6 + v0.4.x enrichment)
 
 - Enriched ASR-1 receipt captures:
   - All decisions and reasons
@@ -912,7 +912,7 @@ Payment actions have a unique property: they **mutate external state** (the ledg
 2. **During:** Budgets are reserved, nonces are consumed, and settlement capacity is verified atomically.
 3. **After:** The complete governance trail is recorded for audit, dispute resolution, and compliance.
 
-This is why AVS's fail-closed design is critical: if any check in any moment fails, the payment does not proceed. There is no "optimistic execution"  uncertainty is always DENY.
+This is why AVS's fail-closed design is critical: if any check in any moment fails, the payment does not proceed. There is no "optimistic execution" — uncertainty is always DENY.
 
 ---
 
@@ -920,25 +920,25 @@ This is why AVS's fail-closed design is critical: if any check in any moment fai
 
 | Term | Definition |
 |------|-----------|
-| **AP2** | Agent Payment Protocol 2  a mandate-based authorization model where users explicitly authorize agents to spend |
-| **AP4M** | Mastercard's Agent Payments for Merchants  launched June 2026 with 30+ partners |
-| **ACP** | Agent Commerce Protocol  another payment protocol for agent transactions |
+| **AP2** | Agent Payment Protocol 2 — a mandate-based authorization model where users explicitly authorize agents to spend |
+| **AP4M** | Mastercard's Agent Payments for Merchants — launched June 2026 with 30+ partners |
+| **ACP** | Agent Commerce Protocol — another payment protocol for agent transactions |
 | **ActionRequest** | AVS's core request object representing an agent's intent to perform an action |
-| **ASR-1** | AVS Signed Receipt format  tamper-evident evidence of governance decisions |
+| **ASR-1** | AVS Signed Receipt format — tamper-evident evidence of governance decisions |
 | **Fail-closed** | Design principle: when uncertain, deny. Opposite of "fail-open" (when uncertain, allow). |
 | **Payment rail** | An underlying system that actually moves money (x402, Stripe, Circle, etc.) |
 | **Replay attack** | Reusing a valid payment proof/intent to extract multiple payments |
 | **Resource binding** | Cryptographically binding a payment to a specific resource to prevent substitution |
-| **TAP** | Trust Agent Protocol  another emerging payment standard |
+| **TAP** | Trust Agent Protocol — another emerging payment standard |
 | **x402** | A popular but vulnerable payment protocol; 97.76% leakage demonstrated in research |
 
 ## Appendix B: References
 
-1. **x402 Security Analysis**  Independent research demonstrating 97.76% PII leakage and replay vulnerabilities in x402 implementations.
-2. **Mastercard AP4M Launch**  June 2026, 30+ launch partners, protocol specification.
-3. **AVS v0.3.6 Documentation**  Existing ASR-1, AgentIdentity, ToolManifest, PolicyEngine documentation.
-4. **AP2 Mandate Model**  User authorization model where humans explicitly approve agent spending capabilities.
-5. **Catena Platform**  "Control plane for agent payments"  positioned for money movement only.
+1. **x402 Security Analysis** — Independent research demonstrating 97.76% PII leakage and replay vulnerabilities in x402 implementations.
+2. **Mastercard AP4M Launch** — June 2026, 30+ launch partners, protocol specification.
+3. **AVS v0.3.6 Documentation** — Existing ASR-1, AgentIdentity, ToolManifest, PolicyEngine documentation.
+4. **AP2 Mandate Model** — User authorization model where humans explicitly approve agent spending capabilities.
+5. **Catena Platform** — "Control plane for agent payments" — positioned for money movement only.
 
 ---
 

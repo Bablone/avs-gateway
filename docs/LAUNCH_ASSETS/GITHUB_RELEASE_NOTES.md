@@ -1,8 +1,8 @@
-# AVS Gateway v0.3.4  Developer Release Foundation
+# AVS Gateway v0.3.4 — Developer Release Foundation
 
 ## Overview
 
-v0.3.4 is the foundation release for developers. It contains the full permission layer, policy engine, risk scorer, trust model, cryptographic receipts, CLI, and framework adapters  stable enough to evaluate, early enough to shape.
+v0.3.4 is the foundation release for developers. It contains the full permission layer, policy engine, risk scorer, trust model, cryptographic receipts, CLI, and framework adapters — stable enough to evaluate, early enough to shape.
 
 **Status:** Alpha. Seeking design partners running real agent workloads.
 
@@ -29,14 +29,14 @@ v0.3.4 is the foundation release for developers. It contains the full permission
 ## Version Tree
 
 ```
-v0.1.0   Core interception layer, basic ALLOW/DENY decisions
-v0.1.5   YAML policy engine, declarative rule definitions
-v0.2.0   Risk scoring engine (4 dimensions)
-v0.2.5   Ed25519 cryptographic receipts, SHA-256 audit chain
-v0.3.0   Trust decay model, REQUIRE_APPROVAL / QUARANTINE decisions
-v0.3.2   LangChain adapter (AVSGovernedTool)
-v0.3.3   CLI (avs version, avs demo, avs policy validate)
-v0.3.4   Full risk model (8 dimensions), 23+ rules, 470+ tests, fail-closed hardening
+v0.1.0  — Core interception layer, basic ALLOW/DENY decisions
+v0.1.5  — YAML policy engine, declarative rule definitions
+v0.2.0  — Risk scoring engine (4 dimensions)
+v0.2.5  — Ed25519 cryptographic receipts, SHA-256 audit chain
+v0.3.0  — Trust decay model, REQUIRE_APPROVAL / QUARANTINE decisions
+v0.3.2  — LangChain adapter (AVSGovernedTool)
+v0.3.3  — CLI (avs version, avs demo, avs policy validate)
+v0.3.4  — Full risk model (8 dimensions), 23+ rules, 470+ tests, fail-closed hardening
 ```
 
 ---
@@ -58,7 +58,7 @@ Requires Python 3.10+.
 ```bash
 pip install avs-gateway
 avs version
-#  AVS Gateway v0.3.4
+# → AVS Gateway v0.3.4
 ```
 
 ### 2. Run the demo
@@ -150,7 +150,7 @@ None. v0.3.4 is backward-compatible with all v0.3.x configurations. If you are u
 
 - 470+ tests, zero failures
 - 4 quickstart examples
-- 100% local  no API keys, no cloud dependency
+- 100% local — no API keys, no cloud dependency
 - Apache 2.0 licensed
 
 ---

@@ -97,6 +97,7 @@ if not LANGCHAIN_AVAILABLE:
 
 else:
     # LangChain IS available — full implementation
+    from pydantic import ConfigDict, Field  # noqa: F811
 
     # -----------------------------------------------------------------------
     # AVSGovernedTool
@@ -118,12 +119,17 @@ else:
             context: Additional context passed to AVS policies.
         """
 
-        wrapped_tool: BaseTool
-        gateway: Gateway
-        action_type: ActionType
-        operation: str
-        agent_id: str
-        context: Optional[Dict[str, Any]]
+        # Pydantic v2: allow arbitrary types (Gateway, BaseTool, ActionType)
+        model_config = ConfigDict(arbitrary_types_allowed=True)
+
+        # AVS fields are excluded from the tool's JSON schema so the LLM
+        # does not see them as tool parameters.
+        wrapped_tool: Any = Field(default=None, exclude=True)
+        gateway: Any = Field(default=None, exclude=True)
+        action_type: Any = Field(default=None, exclude=True)
+        operation: str = Field(default="", exclude=True)
+        agent_id: str = Field(default="langchain_agent", exclude=True)
+        context: dict = Field(default_factory=dict, exclude=True)
 
         def __init__(
             self,
@@ -144,7 +150,8 @@ else:
                 agent_id: Agent identifier for AVS trust tracking.
                 context: Optional extra context for policy evaluation.
             """
-            # Preserve original tool's identity for the LLM
+            # Pass ALL fields (BaseTool + AVS) through super().__init__()
+            # so Pydantic v2 validates and stores them properly.
             super().__init__(
                 name=wrapped_tool.name,
                 description=wrapped_tool.description,
@@ -154,15 +161,26 @@ else:
                 callbacks=wrapped_tool.callbacks,
                 tags=wrapped_tool.tags,
                 metadata=wrapped_tool.metadata,
+                wrapped_tool=wrapped_tool,
+                gateway=gateway,
+                action_type=action_type,
+                operation=operation,
+                agent_id=agent_id,
+                context=context or {},
             )
-            self.wrapped_tool = wrapped_tool
-            self.gateway = gateway
-            self.action_type = action_type
-            self.operation = operation
-            self.agent_id = agent_id
-            self.context = context or {}
 
         # -- LangChain BaseTool interface ----------------------------------
+
+        def run(self, tool_input: Any = None, *args: Any, **kwargs: Any) -> Any:
+            """Override run() to support kwargs-only tool calls.
+
+            BaseTool.run() requires tool_input as the first positional arg.
+            When called with keyword arguments only (e.g., gov.run(endpoint="/test")),
+            we route through _run with those kwargs instead of crashing.
+            """
+            if tool_input is None and kwargs:
+                return self._run(**kwargs)
+            return super().run(tool_input, *args, **kwargs)
 
         def _run(
             self,
@@ -178,7 +196,7 @@ else:
                 3. ALLOW: execute wrapped tool, record receipt
                 4. DENY/QUARANTINE/REQUIRE_APPROVAL: block, return error
             """
-            return self._governed_execute(sync=True, *args, **kwargs)
+            return self._governed_execute(*args, sync=True, **kwargs)
 
         async def _arun(
             self,
@@ -196,7 +214,7 @@ else:
         # -- Core governance logic -----------------------------------------
 
         def _governed_execute(
-            self, sync: bool = True, *args: Any, **kwargs: Any
+            self, *args: Any, sync: bool = True, **kwargs: Any
         ) -> str:
             """Execute tool through AVS governance layer.
 

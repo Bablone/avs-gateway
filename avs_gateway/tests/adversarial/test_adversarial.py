@@ -10,11 +10,15 @@ fail-closed design.
 
 
 from pathlib import Path
+
 import pytest
 import threading
 import time
 
 from avs_gateway.models.action_request import ActionType, create_action_request, ActionRequest
+
+# Repo-relative path to default policies (works on Windows and Linux)
+_POLICIES_YAML = str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
 from avs_gateway.core.gateway_core import Gateway, DecisionType
 from avs_gateway.core.policy_engine import PolicyEngine
 from avs_gateway.core.risk_engine import RiskEngine
@@ -32,7 +36,7 @@ def gateway():
     """Return a fully configured Gateway with default policies."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+        _POLICIES_YAML
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -48,7 +52,7 @@ def fresh_gateway():
     """Return a Gateway with a fresh audit chain."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+        _POLICIES_YAML
     )
     return Gateway(
         policy_engine=policy_engine,

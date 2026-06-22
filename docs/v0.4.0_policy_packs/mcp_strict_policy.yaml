@@ -1,0 +1,90 @@
+# AVS MCP Guard — Strict Policy
+# For enterprise, security teams, production environments.
+# Maximum caution: most operations require approval.
+
+name: mcp_strict
+version: "0.4.0"
+description: "Strict MCP tool-call admission policy for enterprise and production. Default deny."
+
+global:
+  default_decision: require_approval
+  mode: hard_gate
+  sampling:
+    decision: deny
+    reason: "MCP sampling allows server-to-agent prompt injection. Blocked."
+  unknown_tools:
+    decision: quarantine
+  manifest_drift:
+    decision: quarantine
+  schema_validation_failure:
+    decision: deny
+  shadow_tool:
+    decision: deny
+
+action_classes:
+  read_only:
+    decision: require_approval
+    reason: "All operations require explicit approval in strict mode."
+
+  filesystem_read:
+    decision: require_approval
+    path_constraints:
+      - allow_within: "./workspace"
+      - deny_absolute: true
+      - deny_parent_traversal: true
+
+  filesystem_write:
+    decision: deny
+    reason: "File writes denied in strict mode."
+
+  destructive:
+    decision: deny
+
+  network:
+    decision: deny
+    deny_private_ip: true
+    deny_cloud_metadata: true
+    deny_loopback: true
+
+  database_read:
+    decision: require_approval
+    pii_scan: true
+
+  database_write:
+    decision: deny
+
+  message_send:
+    decision: require_approval
+    pii_scan: true
+
+  code_execution:
+    decision: deny
+
+  credential_access:
+    decision: deny
+
+  payment_trigger:
+    decision: require_approval
+
+  deployment:
+    decision: require_approval
+
+  unknown:
+    decision: quarantine
+
+session:
+  exfiltration_guard:
+    enabled: true
+    trigger_tags:
+      - "SENSITIVE_DATA_ACCESSED"
+    upgrade_to: deny
+    applies_to_action_classes:
+      - network
+      - message_send
+      - filesystem_write
+
+receipt:
+  include_manifest_version: true
+  include_schema_validation: true
+  include_session_tags: true
+  include_server_fingerprint: true

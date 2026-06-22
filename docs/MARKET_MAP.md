@@ -68,15 +68,15 @@ Each emerging player solves a piece of the puzzle. The gaps they leave exposed a
 
 | Function | Players | Solves | Gap |
 |----------|---------|--------|-----|
-| User intent / mandate | Google AP2, Visa TAP | Did the user authorize this agentWARNING | Was the action safe in contextWARNING What if the mandate was co-optedWARNING |
-| Commerce interaction | Stripe ACP, OpenAI Commerce | Can agents complete purchasesWARNING | Should this specific transaction happen now, given the current contextWARNING |
-| Agent identity | Visa TAP, Mastercard Verifiable Intent, MCP | Is this a recognized agentWARNING | Is it behaving within its authorized policyWARNING Is its identity consistent across tool callsWARNING |
-| Micropayment execution | x402, Pay.sh, Circle Nanopayments | Can agents pay per requestWARNING | Atomicity, replay protection, settlement drift, cross-rail consistency |
-| Institutional settlement | Mastercard AP4M, bank rails | Can payments settle across railsWARNING | Cross-tool governance -- who mediates when tool A and tool B disagreeWARNING |
-| Observability | LangSmith, Langfuse, Arize | What did the agent doWARNING | No interception -- it already happened. Reactive, not preventive. |
-| Output validation | Guardrails AI, Lakera | Is the output safe / compliantWARNING | No execution governance -- validates text, not actions. |
-| Policy engine | OPA, Cedar | Is the action permitted by policyWARNING | No action normalization, no adapters, no receipts, no proof of compliance. |
-| **Control plane** | **Catena, AVS** | **Can owners set controls, intercept, and produce audit evidenceWARNING** | **Catena: payment-focused, closed-source. AVS: all actions, open-source, with receipts.** |
+| User intent / mandate | Google AP2, Visa TAP | Did the user authorize this agent? | Was the action safe in context? What if the mandate was co-opted? |
+| Commerce interaction | Stripe ACP, OpenAI Commerce | Can agents complete purchases? | Should this specific transaction happen now, given the current context? |
+| Agent identity | Visa TAP, Mastercard Verifiable Intent, MCP | Is this a recognized agent? | Is it behaving within its authorized policy? Is its identity consistent across tool calls? |
+| Micropayment execution | x402, Pay.sh, Circle Nanopayments | Can agents pay per request? | Atomicity, replay protection, settlement drift, cross-rail consistency |
+| Institutional settlement | Mastercard AP4M, bank rails | Can payments settle across rails? | Cross-tool governance -- who mediates when tool A and tool B disagree? |
+| Observability | LangSmith, Langfuse, Arize | What did the agent do? | No interception -- it already happened. Reactive, not preventive. |
+| Output validation | Guardrails AI, Lakera | Is the output safe / compliant? | No execution governance -- validates text, not actions. |
+| Policy engine | OPA, Cedar | Is the action permitted by policy? | No action normalization, no adapters, no receipts, no proof of compliance. |
+| **Control plane** | **Catena, AVS** | **Can owners set controls, intercept, and produce audit evidence?** | **Catena: payment-focused, closed-source. AVS: all actions, open-source, with receipts.** |
 
 ### The Key Insight
 
@@ -213,7 +213,7 @@ The autonomous agent market is forming in layers:
 4. **Control plane** (empty -- this is AVS)
 5. **Evidence / clearing** (future -- ASR-1)
 
-AVS occupies layer 4, the control plane. This is the empty layer -- the only one with no incumbent and massive enterprise demand. Every enterprise deploying agents needs to answer: "How do I control what these things doWARNING" AVS is the answer.
+AVS occupies layer 4, the control plane. This is the empty layer -- the only one with no incumbent and massive enterprise demand. Every enterprise deploying agents needs to answer: "How do I control what these things do?" AVS is the answer.
 
 The market timing is precise. Payment rails go live in 2026 H1. The control gap becomes obvious in 2026 H2. AVS is building now to capture the 2027 market consolidation window. By the time Catena and cloud providers compete, AVS will have defined the category, the evidence format (ASR-1), and the open-source standard.
 

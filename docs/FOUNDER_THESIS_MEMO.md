@@ -2,7 +2,7 @@
 
 **A Founder Thesis on Governed Execution for the Agentic Economy**
 
-*Internal Use  Investor Conversations  Design Partner Discussions*
+*Internal Use — Investor Conversations — Design Partner Discussions*
 *June 2026*
 
 ---
@@ -11,11 +11,11 @@
 
 The world is undergoing a structural shift in who interacts with software.
 
-**From:** Humans using software tools directly  clicking buttons, filling forms, reviewing outputs, making decisions.
+**From:** Humans using software tools directly — clicking buttons, filling forms, reviewing outputs, making decisions.
 
-**To:** Agents using tools on behalf of humans  proposing actions, calling APIs, moving money, deploying code, screening tenants, processing claims  at machine speed and machine scale.
+**To:** Agents using tools on behalf of humans — proposing actions, calling APIs, moving money, deploying code, screening tenants, processing claims — at machine speed and machine scale.
 
-This transition creates a new missing layer in the technology stack. It is not intelligence  large language models handle that, and intelligence is now a commodity (DeepSeek V4-Flash delivers frontier capability at $0.28 per million output tokens, a ~600,000x price decline in six years). It is not wallets  payment rails are being built for agents as we speak. It is not checkout  commerce protocols exist. It is not monitoring  observability platforms trace and log.
+This transition creates a new missing layer in the technology stack. It is not intelligence — large language models handle that, and intelligence is now a commodity (DeepSeek V4-Flash delivers frontier capability at $0.28 per million output tokens, a ~600,000x price decline in six years). It is not wallets — payment rails are being built for agents as we speak. It is not checkout — commerce protocols exist. It is not monitoring — observability platforms trace and log.
 
 The missing layer is **governed execution**: a system that decides whether an agent's proposed action should happen *before* it happens, produces verifiable evidence of that decision, and maintains a trust record over time.
 
@@ -38,7 +38,7 @@ The moment is not theoretical. The infrastructure convergence is happening in mi
 | **Circle Nanopayments** | April 2026 | $0.000001 payments on 11 chains. Agent micro-transactions are now economically viable at scale. |
 | **Admission-control papers** | 2026 | Multiple academic papers (UC Berkeley, Stanford, CMU) validate intercept-before-execute as the correct architecture for agent governance. |
 
-**The pattern:** 2025 created protocols (MCP, A2A, payment standards). 2026 turned those protocols into operational infrastructure. The control layer  the system that intercepts agent actions before they reach tools, APIs, files, and payment rails  is the obvious next gap.
+**The pattern:** 2025 created protocols (MCP, A2A, payment standards). 2026 turned those protocols into operational infrastructure. The control layer — the system that intercepts agent actions before they reach tools, APIs, files, and payment rails — is the obvious next gap.
 
 We are not building ahead of the market. We are building at the exact moment the market proves it needs us.
 
@@ -63,7 +63,7 @@ When an agent can:
 
 Every action has consequences. Some are reversible. Many are not. A payment sent cannot be unsent. An email delivered cannot be undelivered. A tenant denied housing based on an agent's screening cannot have that decision erased.
 
-Someone  something  must decide whether the action should happen *before* it happens.
+Someone — something — must decide whether the action should happen *before* it happens.
 
 Currently, that decision is made by one of three inadequate mechanisms:
 
@@ -128,11 +128,11 @@ This is not a log line. It is structured proof. Portable, verifiable, admissible
 
 ## 5. Why This Approach Wins
 
-**Fail-closed design.** Any error in the gateway  policy engine crash, risk scorer timeout, signing key failure, validation exception  results in DENY. The system defaults to safe. This is the architectural answer to the x402 paper's finding that optimistic execution leaks 97.76% of sensitive information. AVS does not trust by default. It distrusts by default and requires explicit evidence to allow.
+**Fail-closed design.** Any error in the gateway — policy engine crash, risk scorer timeout, signing key failure, validation exception — results in DENY. The system defaults to safe. This is the architectural answer to the x402 paper's finding that optimistic execution leaks 97.76% of sensitive information. AVS does not trust by default. It distrusts by default and requires explicit evidence to allow.
 
-**Framework-agnostic.** One Python decorator (`@governed_tool`) wraps any function, any framework, any agent. No rewrites required. LangChain, OpenAI Agents SDK, Google ADK, CrewAI, AutoGen, custom agents  all route through the same gateway. The adapter layer normalizes every action into a canonical `ActionRequest`. The gateway does not care which framework proposed the action. It cares whether the action should be allowed.
+**Framework-agnostic.** One Python decorator (`@governed_tool`) wraps any function, any framework, any agent. No rewrites required. LangChain, OpenAI Agents SDK, Google ADK, CrewAI, AutoGen, custom agents — all route through the same gateway. The adapter layer normalizes every action into a canonical `ActionRequest`. The gateway does not care which framework proposed the action. It cares whether the action should be allowed.
 
-**Local-first.** No cloud dependency. No API keys. No external service required. The gateway runs on the same machine as the agent. Receipts are stored locally. The customer controls when  or whether  to export or share evidence. This matters for: air-gapped environments, regulated data, offline operation, and customers who do not want their agent actions flowing through a third-party SaaS.
+**Local-first.** No cloud dependency. No API keys. No external service required. The gateway runs on the same machine as the agent. Receipts are stored locally. The customer controls when — or whether — to export or share evidence. This matters for: air-gapped environments, regulated data, offline operation, and customers who do not want their agent actions flowing through a third-party SaaS.
 
 **Receipt-first.** Every decision creates a portable, verifiable evidence object. Not a log line in a proprietary format. A structured, signed, hash-linked receipt that can be exported, audited, presented to regulators, used in dispute resolution, and verified by anyone with the public key. The receipt format (ASR-1) is open and documented. The verifier is open source.
 
@@ -152,7 +152,7 @@ This sentence describes every team building with agents in 2026. The moment they
 
 | Role | Pain | Where AVS Fits |
 |------|------|----------------|
-| **CTO / founder of AI agent startup** | Client asks "how do we know your agent is safeWARNING" | Signed evidence bundle + trust score |
+| **CTO / founder of AI agent startup** | Client asks "how do we know your agent is safe?" | Signed evidence bundle + trust score |
 | **Head of AI platform** | Too many agents with too much access | Policy-based gating + audit trail |
 | **Security / platform engineer** | Shadow AI agents operating unsupervised | Discovery + interception of all agent actions |
 | **Enterprise innovation team** | Compliance needs evidence of AI oversight | Tamper-proof receipts + redacted reports |
@@ -170,7 +170,7 @@ This sentence describes every team building with agents in 2026. The moment they
 |-----------|-------------|---------------------|
 | **Catena** | Payment control plane for agent transactions | AVS governs all actions (files, APIs, deployments, data), not just payments. Payment is one action type among many. |
 | **LangSmith / Langfuse** | Observability and tracing for LLM calls | AVS controls before execute. Observability records after execute. Prevention beats detection. |
-| **Guardrails AI** | Output validation (text quality, format checking) | AVS governs runtime execution (should this action happenWARNING), not text output (is this text well-formedWARNING). |
+| **Guardrails AI** | Output validation (text quality, format checking) | AVS governs runtime execution (should this action happen?), not text output (is this text well-formed?). |
 | **OPA / Cedar** | Policy engines (evaluate rules, return decisions) | AVS adds action normalization, framework adapters, signed receipts, approval workflows, and trust scoring. OPA evaluates rules. AVS governs agents. |
 | **Emerging security startups** | Agent runtime protection (input defense, prompt injection) | AVS is open source, portable, receipt-compatible, and framework-agnostic. Closed security stacks create vendor lock-in that AVS avoids. |
 
@@ -188,9 +188,9 @@ The moat is not the code. The code is a Python gateway that a competent engineer
 
 3. **Policy library.** Domain-specific policy packs (financial services, healthcare, property management, DevOps) accumulate domain knowledge that is non-transferable. A policy that correctly governs tenant screening in property management is worthless in payment processing.
 
-4. **Approval and audit workflows.** The enterprise process layer  routing approval requests to the right humans, maintaining audit trails, generating compliance exports, integrating with SIEM  is sticky. Organizations build processes around these workflows. Switching means rebuilding process, not just swapping code.
+4. **Approval and audit workflows.** The enterprise process layer — routing approval requests to the right humans, maintaining audit trails, generating compliance exports, integrating with SIEM — is sticky. Organizations build processes around these workflows. Switching means rebuilding process, not just swapping code.
 
-5. **Trust graph over time.** As AVS records agent behavior, it builds a time-weighted trust history for each agent. This learned pattern data  which agents are reliable, which tools they use well, what risk profiles look like in practice  becomes more valuable the longer it accumulates. A competitor with no history cannot offer comparable trust scoring.
+5. **Trust graph over time.** As AVS records agent behavior, it builds a time-weighted trust history for each agent. This learned pattern data — which agents are reliable, which tools they use well, what risk profiles look like in practice — becomes more valuable the longer it accumulates. A competitor with no history cannot offer comparable trust scoring.
 
 6. **Vertical proof.** TrustNamba and PropertyFlow provide a real-world vertical where agent governance is not theoretical. Tenant screening, landlord verification, payment authorization, and dispute evidence are live use cases that produce case studies, testimonials, and reference customers.
 
@@ -209,7 +209,7 @@ Open core, commercial expansion:
 | **Enterprise** | Annual contract | Self-hosted deployment, SSO/RBAC, domain-specific policy packs, SIEM integration, compliance exports (SOC 2, GDPR, PCI evidence) |
 | **Vertical Solutions** | Per-vertical pricing | Agentic software factories, agentic payments, property/identity verification, regulated API access |
 
-The value metric is not tokens processed. It is **verified actions**  the number of agent actions that passed through AVS governance and produced a receipt. This aligns pricing with the value delivered: trust, not compute.
+The value metric is not tokens processed. It is **verified actions** — the number of agent actions that passed through AVS governance and produced a receipt. This aligns pricing with the value delivered: trust, not compute.
 
 ---
 
@@ -218,19 +218,19 @@ The value metric is not tokens processed. It is **verified actions**  the number
 The future architecture of the agentic economy:
 
 ```
-Model Layer          (OpenAI, Anthropic, DeepSeek, Google  intelligence)
+Model Layer          (OpenAI, Anthropic, DeepSeek, Google — intelligence)
       |
       v
-Agent Framework      (LangChain, OpenAI SDK, Google ADK, CrewAI  orchestration)
+Agent Framework      (LangChain, OpenAI SDK, Google ADK, CrewAI — orchestration)
       |
       v
-  AVS Gateway        (interception, evaluation, decision, receipt  GOVERNANCE)
+  AVS Gateway        (interception, evaluation, decision, receipt — GOVERNANCE)
       |
       v
-Tool / Payment Rail  (APIs, databases, files, Stripe, Visa, Mastercard  execution)
+Tool / Payment Rail  (APIs, databases, files, Stripe, Visa, Mastercard — execution)
       |
       v
-ASR-1 Receipt        (portable, signed, verifiable evidence  PROOF)
+ASR-1 Receipt        (portable, signed, verifiable evidence — PROOF)
       |
       v
 Clearing / Dispute   (audit, compliance, dispute resolution, regulatory review)
@@ -242,16 +242,16 @@ AVS sits between the agent and the world. It governs before money moves, before 
 
 ## 11. Why This Team
 
-The founder has deep domain expertise in property, identity, and verification systems in African markets. This is not abstract. TrustNamba and PropertyFlow are live products where agent governance is not a nice-to-have  it is a requirement:
+The founder has deep domain expertise in property, identity, and verification systems in African markets. This is not abstract. TrustNamba and PropertyFlow are live products where agent governance is not a nice-to-have — it is a requirement:
 
-- **Tenant screening:** An agent evaluates a rental applicant. The decision affects housing access and legal compliance. Who authorized this screeningWARNING What criteria were appliedWARNING Can we prove the decision was fairWARNING
+- **Tenant screening:** An agent evaluates a rental applicant. The decision affects housing access and legal compliance. Who authorized this screening? What criteria were applied? Can we prove the decision was fair?
 - **Landlord verification:** An agent confirms a landlord's identity and property ownership. Getting this wrong enables fraud. The receipt proves the verification happened and the evidence was intact.
 - **Payment authorization:** An agent initiates rent collection. The payment must be within the tenant's authorized mandate. The receipt links the payment to the authorization.
 - **Dispute evidence:** A tenant disputes a decision. The ASR-1 receipt provides the cryptographically signed evidence chain that proves what the agent did, why it did it, and who authorized it.
 
-This vertical gives AVS three things most infrastructure startups lack: a live use case with real users, a regulatory environment where proof matters, and a customer who needs governance today  not in some hypothetical future.
+This vertical gives AVS three things most infrastructure startups lack: a live use case with real users, a regulatory environment where proof matters, and a customer who needs governance today — not in some hypothetical future.
 
-The team understands both the technical problem (how do you intercept and evaluate agent actionsWARNING) and the human problem (how do you prove to a regulator, a judge, or a customer that an agent's decision was legitimateWARNING). Technical depth plus domain specificity is the combination that builds infrastructure companies.
+The team understands both the technical problem (how do you intercept and evaluate agent actions?) and the human problem (how do you prove to a regulator, a judge, or a customer that an agent's decision was legitimate?). Technical depth plus domain specificity is the combination that builds infrastructure companies.
 
 ---
 
@@ -259,7 +259,7 @@ The team understands both the technical problem (how do you intercept and evalua
 
 We are looking for three things right now:
 
-1. **Three design partners** building with agents who need tool governance. We want teams that feel the problem today  agents touching production systems, payment APIs, customer data, or external tools  and want to be early users of governed execution. Design partners get free access, direct input on the product roadmap, and co-branding on case studies.
+1. **Three design partners** building with agents who need tool governance. We want teams that feel the problem today — agents touching production systems, payment APIs, customer data, or external tools — and want to be early users of governed execution. Design partners get free access, direct input on the product roadmap, and co-branding on case studies.
 
 2. **Feedback on the ASR-1 receipt format.** We have published the schema and the verifier. We want security engineers, compliance officers, and infrastructure architects to review it, challenge it, and help us make it the standard for agent accountability evidence.
 
@@ -271,13 +271,13 @@ We are looking for three things right now:
 - Enterprise sales. The product is not ready for procurement cycles.
 - Standards body submissions. We need users before we seek standardization.
 
-The sequence is: design partners  product feedback  iterate  open source adoption  commercial pilots  investment. Not the reverse.
+The sequence is: design partners → product feedback → iterate → open source adoption → commercial pilots → investment. Not the reverse.
 
 ---
 
 ## Closing
 
-The agentic economy has a missing layer. Intelligence is abundant. Payment rails are operational. Observability exists. But the moment an agent proposes an action that affects the world  a file write, a payment, a deployment, a database query  there is no systematic, verifiable, scalable mechanism to decide whether that action should proceed.
+The agentic economy has a missing layer. Intelligence is abundant. Payment rails are operational. Observability exists. But the moment an agent proposes an action that affects the world — a file write, a payment, a deployment, a database query — there is no systematic, verifiable, scalable mechanism to decide whether that action should proceed.
 
 That is the layer AVS builds.
 
@@ -293,4 +293,4 @@ If you are building with agents and feel this gap, we want to talk.
 *Evidence before autonomy.*
 *Accountability before scale.*
 
-**AVS  The Proof-Gated Action Layer**
+**AVS — The Proof-Gated Action Layer**

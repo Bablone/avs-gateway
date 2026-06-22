@@ -3,3 +3,5 @@ __pycache__/
 *.pyo
 *.sqlite3
 data/
+*.egg-info/
+sandbox/output.txt

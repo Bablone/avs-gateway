@@ -55,8 +55,8 @@ You will see three decisions:
 
 | # | Action | Decision | Meaning |
 |---|--------|----------|---------|
-| 1 | Read file from sandbox | **ALLOW** | Safe action  executed |
-| 2 | Delete /etc/passwd | **DENY** | Dangerous  blocked |
+| 1 | Read file from sandbox | **ALLOW** | Safe action — executed |
+| 2 | Delete /etc/passwd | **DENY** | Dangerous — blocked |
 | 3 | Deploy to production | **REQUIRE_APPROVAL** | Needs human review |
 
 Each action produces a cryptographic receipt. No action executes without AVS
@@ -85,13 +85,13 @@ python examples/quickstart/01_gateway_basics.py
     Decision : deny
     Reason   : File deletion is not allowed by default
     Receipt  : 7e4d9f2a...
-     Tool execution BLOCKED
+    → Tool execution BLOCKED
 
 [3] Production deployment (payment-processor)
     Decision : require_approval
     Reason   : Operation requires human approval
     Receipt  : 9c1b4e8d...
-     Queued for human approval
+    → Queued for human approval
 ```
 
 **What you learn:** Every action produces a `Decision` and a `Receipt`.
@@ -116,7 +116,7 @@ from avs_gateway.adapters.governed import governed_tool
 def read_config_file(path: str) -> str:
     return f"Contents of {path}: ..."
 
-# Call normally  AVS intercepts automatically
+# Call normally — AVS intercepts automatically
 result = read_config_file("settings.conf")
 # result.decision = "allow"
 # result.receipt_hash = "3f2a8b..."
@@ -149,7 +149,7 @@ governed_search = govern_langchain_tool(
     operation="GET",
 )
 
-# Pass to LangChain agent  AVS controls every tool call
+# Pass to LangChain agent — AVS controls every tool call
 agent = create_react_agent(llm, tools=[governed_search])
 ```
 

@@ -17,12 +17,12 @@ The agentic economy requires more than payment rails. It requires a layer that d
 
 **The core insight:** Payment rails move value. AVS governs whether value-moving actions should happen. This is not a subtle distinction. Every payment rail in the market -- Stripe, Mastercard AP4M, Circle nanopayments, Solana Pay.sh -- assumes the decision to pay has already been made. AVS sits upstream of that decision. We do not compete with rails. We make rails safe to use.
 
-**The future stack is not model  wallet.**
+**The future stack is not model → wallet.**
 
 The naive architecture treats the LLM as the decision-maker and the wallet as the execution point. This is dangerous and incomplete. The correct stack:
 
 ```
-Model  Agent  AVS  Tool / Payment Rail  Receipt  Clearing
+Model → Agent → AVS → Tool / Payment Rail → Receipt → Clearing
 ```
 
 Each arrow represents a trust boundary. AVS is the gate at the most critical boundary: the point where intent becomes irrevocable action.
@@ -55,7 +55,7 @@ The second phase saw real infrastructure come online -- systems that process act
 
 | Date | Event | Significance |
 |------|-------|-------------|
-| **April 2026** | **Circle Nanopayments  mainnet** | Gas-free USDC transfers across 11 chains. Removes the cost barrier for micro-transactions. Enables agent-to-agent and agent-to-machine payments at sub-cent scale. This is a rail -- it moves money cheaply. It does not decide whether the money should move. |
+| **April 2026** | **Circle Nanopayments → mainnet** | Gas-free USDC transfers across 11 chains. Removes the cost barrier for micro-transactions. Enables agent-to-agent and agent-to-machine payments at sub-cent scale. This is a rail -- it moves money cheaply. It does not decide whether the money should move. |
 | **May 2026** | **Solana + Google Pay.sh** | API-per-request payment model. Developers can charge per API call using Solana's settlement layer. Creates a transactional mesh where every agent action can have an attached cost. Again: a rail, not a governance layer. |
 | **May 2026** | **AWS AgentCore Payments** | Coinbase + Stripe partnership integrated into AWS's agent hosting platform. Enterprise-grade payment plumbing for agents deployed on AWS. Validates that the major cloud providers treat agent payments as first-class infrastructure. |
 | **June 2026** | **Mastercard AP4M** | The most significant operational launch. Guaranteed multi-rail settlement with 30+ partners. Combines traditional card rails, blockchain settlement, and real-time payment networks into a single abstraction for machine payments. See Section 3 for full analysis. |
@@ -64,11 +64,11 @@ The second phase saw real infrastructure come online -- systems that process act
 
 The market matured organically: protocols first, then operational rails. This is a familiar pattern:
 
-- **TCP/IP (protocol)  Cisco routers (infrastructure)**
-- **HTTP (protocol)  AWS / Cloudflare (infrastructure)**
-- **AP2/TAP/ACP (protocols)  AP4M / Circle / Pay.sh (infrastructure)**
+- **TCP/IP (protocol) → Cisco routers (infrastructure)**
+- **HTTP (protocol) → AWS / Cloudflare (infrastructure)**
+- **AP2/TAP/ACP (protocols) → AP4M / Circle / Pay.sh (infrastructure)**
 
-The protocol phase proved the need. The operational phase proved the economics. What neither phase addresses is the governance question: **should this action happen at allWARNING**
+The protocol phase proved the need. The operational phase proved the economics. What neither phase addresses is the governance question: **should this action happen at all?**
 
 That is AVS's position. The market has built the roads. AVS builds the traffic lights, stop signs, and inspection stations.
 
@@ -124,14 +124,14 @@ This is the critical positioning distinction:
 | **Scope** | Payments only | All autonomous actions (payments, DB writes, API calls, deployments) |
 | **Position in stack** | Rail layer (execution) | Governance layer (admission control) |
 | **Value proposition** | Guaranteed settlement | Proof-gated admission |
-| **Question it answers** | "How do we payWARNING" | "Should we allow this actionWARNING" |
+| **Question it answers** | "How do we pay?" | "Should we allow this action?" |
 
 AP4M handles money movement. AVS handles action governance. AP4M ensures the payment completes. AVS ensures the payment should have been initiated. These are complementary functions, not overlapping ones.
 
 In the future stack:
 
 ```
-Model  Agent  AVS [should this happenWARNING]  AP4M [execute payment]  Receipt  Clearing
+Model → Agent → AVS [should this happen?] → AP4M [execute payment] → Receipt → Clearing
 ```
 
 AP4M is a potential integration target for AVS, not a competitor.
@@ -165,8 +165,8 @@ This is the most direct competitive threat to AVS in the market today. Catena is
 
 The distinction must be stated with absolute clarity:
 
-> **Catena asks: "Should this agent move moneyWARNING"**
-> **AVS asks: "Should this agent be allowed to mutate the worldWARNING"**
+> **Catena asks: "Should this agent move money?"**
+> **AVS asks: "Should this agent be allowed to mutate the world?"**
 
 This is not marketing language. It is an architectural truth.
 
@@ -188,10 +188,10 @@ The payment-control market is a segment of the action-control market. Catena can
 The most likely market outcome is coexistence:
 
 ```
-Model  Agent  AVS [general action governance]  Catena [payment-specific controls]  AP4M [settlement]  Receipt  Clearing
+Model → Agent → AVS [general action governance] → Catena [payment-specific controls] → AP4M [settlement] → Receipt → Clearing
 ```
 
-AVS handles the "should this action happenWARNING" decision. For actions classified as payments, AVS delegates payment-specific controls (budget limits, merchant verification) to Catena. Catena returns a payment authorization decision. AVS incorporates that decision into its overall action verdict.
+AVS handles the "should this action happen?" decision. For actions classified as payments, AVS delegates payment-specific controls (budget limits, merchant verification) to Catena. Catena returns a payment authorization decision. AVS incorporates that decision into its overall action verdict.
 
 This is the Kubernetes model: AVS is the admission controller; Catena is a validating webhook for payment actions.
 
@@ -467,10 +467,10 @@ Rationale: "Infrastructure" signals that AVS is a platform layer, not an applica
 
 ### The Stack
 
-> **"The future stack is not model  wallet. It is model  agent  AVS  payment/tool rail  receipt  clearing."**
+> **"The future stack is not model → wallet. It is model → agent → AVS → payment/tool rail → receipt → clearing."**
 
 Use: Vision presentations, strategic planning, competitive differentiation.
-Rationale: Defines the architectural future AVS is building toward. The "model  wallet" framing describes the naive, dangerous architecture. The corrected stack shows where AVS fits and why it is necessary.
+Rationale: Defines the architectural future AVS is building toward. The "model → wallet" framing describes the naive, dangerous architecture. The corrected stack shows where AVS fits and why it is necessary.
 
 ### Usage Guidelines
 
@@ -536,7 +536,7 @@ The strategic positioning in this document directly shapes the v0.4 roadmap. Eve
 - **Reservation API:** On approval, reserve budget/resources for the expected action
 - **Commit API:** On receipt, commit the reservation (convert to actual consumption)
 - **Release API:** On failure/timeout, release the reservation
-- **Two-phase locking:** Reservation  execution  commit/release
+- **Two-phase locking:** Reservation → execution → commit/release
 - **Pessimistic delivery option:** For high-risk actions, require commit before providing service
 
 ### Near-Miss Classification
@@ -560,7 +560,7 @@ The strategic positioning in this document directly shapes the v0.4 roadmap. Eve
 **Implementation:**
 - Outcome verification: compare receipt data against actual outcomes (settlement amounts, API response codes, resource consumption)
 - Automatic incident creation on outcome mismatch
-- Receipt  incident linkage in the audit trail
+- Receipt → incident linkage in the audit trail
 - Dispute resolution support: receipts serve as evidence in payment disputes
 
 ### v0.4 Roadmap Summary Table
@@ -602,7 +602,7 @@ AVS has no wallet. AVS has no settlement capability. AVS has no access to user f
 
 | Dimension | Observability (LangSmith, Langfuse) | AVS |
 |-----------|-------------------------------------|-----|
-| **Primary question** | "What happened and whyWARNING" | "Should this have happenedWARNING" |
+| **Primary question** | "What happened and why?" | "Should this have happened?" |
 | **Timing** | During and after execution | Before and after execution |
 | **Decision authority** | None (observes only) | Yes (can deny execution) |
 | **Scope** | LLM inference, prompt chains, tool calls | All agent actions (including non-LLM) |
@@ -634,7 +634,7 @@ AVS could use OPA or Cedar as its internal policy evaluation engine. AVS wraps t
 
 | Dimension | Identity System | AVS |
 |-----------|----------------|-----|
-| **Primary question** | "Who is thisWARNING" | "Should this action be allowedWARNING" |
+| **Primary question** | "Who is this?" | "Should this action be allowed?" |
 | **Output** | Identity assertion, credential | Action verdict (allow/deny/quarantine) |
 | **Scope** | Authentication | Authorization + governance |
 | **Action binding** | None | Cryptographic binding between identity, action, and receipt |
@@ -652,36 +652,36 @@ AVS is not a replacement for any existing system. It is a new layer that sits be
 ### Scope Boundary Diagram
 
 ```
-
-                    EXISTING SYSTEMS                          
-             
-   Identity    Policy   Observab.   Payment          
-    (OIDC,     (OPA,    (LangSmith   (Stripe,        
-   SPIFFE)     Cedar)    Langfuse)   AP4M)           
-             
-                                                          
-                                                          
-       
-                      AVS LAYER                              
-             
-              ADMISSION CONTROL                            
-      Identity verification + Policy evaluation            
-      + Agent-specific heuristics  Verdict                
-             
-                                                            
-                                                            
-             
-             EXECUTION (delegated)                         
-      Tool call / Payment / API  External system          
-             
-                                                            
-                                                            
-             
-          RECEIPT + VERIFICATION                           
-      ASR-1 receipt  Verification  Outcome               
-             
-       
-
+┌─────────────────────────────────────────────────────────────┐
+│                    EXISTING SYSTEMS                          │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │ Identity │ │  Policy  │ │Observab. │ │ Payment  │        │
+│  │  (OIDC,  │ │  (OPA,   │ │(LangSmith│ │  (Stripe,│        │
+│  │ SPIFFE)  │ │  Cedar)  │ │ Langfuse)│ │  AP4M)   │        │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘        │
+│       │            │            │            │               │
+│       ▼            ▼            ▼            ▼               │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │                    AVS LAYER                         │     │
+│  │  ┌─────────────────────────────────────────────┐    │     │
+│  │  │          ADMISSION CONTROL                   │    │     │
+│  │  │  Identity verification + Policy evaluation   │    │     │
+│  │  │  + Agent-specific heuristics → Verdict       │    │     │
+│  │  └─────────────────────────────────────────────┘    │     │
+│  │                         │                            │     │
+│  │                         ▼                            │     │
+│  │  ┌─────────────────────────────────────────────┐    │     │
+│  │  │         EXECUTION (delegated)                │    │     │
+│  │  │  Tool call / Payment / API → External system │    │     │
+│  │  └─────────────────────────────────────────────┘    │     │
+│  │                         │                            │     │
+│  │                         ▼                            │     │
+│  │  ┌─────────────────────────────────────────────┐    │     │
+│  │  │      RECEIPT + VERIFICATION                  │    │     │
+│  │  │  ASR-1 receipt → Verification → Outcome      │    │     │
+│  │  └─────────────────────────────────────────────┘    │     │
+│  └─────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 AVS consumes from identity, policy, and observability systems. AVS produces receipts for the clearing layer. AVS delegates execution to tools and payment rails. AVS does not replace any system in the stack. It governs the handoffs between them.

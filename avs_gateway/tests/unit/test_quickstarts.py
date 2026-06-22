@@ -146,12 +146,12 @@ class TestReadmeRequirements:
     """README contains required positioning phrases."""
 
     def test_runtime_permission_layer_in_readme(self):
-        with open(os.path.join(REPO_ROOT, "README.md")) as f:
+        with open(os.path.join(REPO_ROOT, "README.md"), encoding="utf-8") as f:
             content = f.read()
         assert "Runtime Permission Layer for AI Agents" in content
 
     def test_receipt_hook_in_readme(self):
-        with open(os.path.join(REPO_ROOT, "README.md")) as f:
+        with open(os.path.join(REPO_ROOT, "README.md"), encoding="utf-8") as f:
             content = f.read()
         assert "Every agent action gets a receipt" in content
 
@@ -163,7 +163,7 @@ class TestLicenseExists:
         assert os.path.isfile(os.path.join(REPO_ROOT, "LICENSE"))
 
     def test_license_is_apache(self):
-        with open(os.path.join(REPO_ROOT, "LICENSE")) as f:
+        with open(os.path.join(REPO_ROOT, "LICENSE"), encoding="utf-8") as f:
             content = f.read()
         assert "Apache License" in content
         assert "Version 2.0" in content

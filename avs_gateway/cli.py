@@ -15,7 +15,7 @@ import os
 import subprocess
 
 # Package version
-__version__ = "0.3.6"
+__version__ = "0.4.0-alpha"
 
 
 def _get_repo_root() -> str:

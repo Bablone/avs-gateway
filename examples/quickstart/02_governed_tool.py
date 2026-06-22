@@ -1,5 +1,5 @@
 """
-AVS Quickstart 02  @governed_tool Decorator
+AVS Quickstart 02 — @governed_tool Decorator
 
 Shows: wrap any Python function with one line. AVS intercepts
 automatically. Allowed functions execute. Denied functions are
@@ -26,7 +26,7 @@ from avs_gateway.core.gateway_core import Gateway
 
 def main():
     print("=" * 60)
-    print("  AVS Quickstart 02  @governed_tool Decorator")
+    print("  AVS Quickstart 02 — @governed_tool Decorator")
     print("  One line. No rewrites. Full governance.")
     print("=" * 60)
 
@@ -68,7 +68,7 @@ def main():
     print(f"    Executed : {result2.executed}")
     print(f"    Decision : {result2.decision}")
     print(f"    Reason   : {result2.reason}")
-    print(f"     The delete function NEVER ran. No data was lost.")
+    print(f"    -> The delete function NEVER ran. No data was lost.")
 
     # ---- Evidence ----
     print("\n" + "=" * 60)

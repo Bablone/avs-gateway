@@ -1,4 +1,4 @@
-# Strategic Synthesis  AVS Gateway
+# Strategic Synthesis — AVS Gateway
 ## Thinking Through the Proof-of-Action Thesis
 
 **Date:** 2026-06-21
@@ -10,12 +10,12 @@
 
 ### The next scarce asset in AI is not intelligence. It is accountable agency.
 
-Models are becoming cheaper, stronger, more open, and more interchangeable. GPT-4, Claude, Gemini, Llama, DeepSeek  the model layer is commoditizing. What is NOT commoditizing is the ability to prove what an autonomous system attempted, what was decided, whether it executed, and whether the evidence was tampered with.
+Models are becoming cheaper, stronger, more open, and more interchangeable. GPT-4, Claude, Gemini, Llama, DeepSeek — the model layer is commoditizing. What is NOT commoditizing is the ability to prove what an autonomous system attempted, what was decided, whether it executed, and whether the evidence was tampered with.
 
 This is the durable control point because:
 
-1. **Enterprises will not deploy agents that act without evidence trails.** The CISO question is not "Can this agent code wellWARNING" It is "Can you prove what happened when it touched productionWARNING"
-2. **Regulators will eventually require action provenance.** SOX, HIPAA, GDPR, DORA  all assume human accountability. As agents replace human actions, the compliance frameworks will need agent accountability.
+1. **Enterprises will not deploy agents that act without evidence trails.** The CISO question is not "Can this agent code well?" It is "Can you prove what happened when it touched production?"
+2. **Regulators will eventually require action provenance.** SOX, HIPAA, GDPR, DORA — all assume human accountability. As agents replace human actions, the compliance frameworks will need agent accountability.
 3. **Insurance only works with evidence.** No insurer underwrites "we think the agent was safe." They underwrite "here is the receipt proving the control worked."
 4. **Trust scales only with verification.** A team of 3 developers can trust an agent implicitly. A team of 300 cannot. At enterprise scale, trust requires proof.
 
@@ -48,7 +48,7 @@ This framing matters because:
 
 ## III. The Category Question
 
-### What is AVS, reallyWARNING
+### What is AVS, really?
 
 Three possible category descriptors:
 
@@ -73,19 +73,19 @@ Three possible category descriptors:
 | **Standards / Technical Docs** | "Agent Action Provenance" | Precise, connects to existing frameworks |
 | **Tagline (universal)** | "Every agent action gets a receipt." | Memorable, specific, proof of concept |
 
-The "Runtime Permission Layer" is the **HOW**  what developers install. "Proof-Gated Action" is the **WHY**  what the market understands. Both are needed. Neither replaces the other.
+The "Runtime Permission Layer" is the **HOW** — what developers install. "Proof-Gated Action" is the **WHY** — what the market understands. Both are needed. Neither replaces the other.
 
 ---
 
 ## IV. The Moat Is Not the Code
 
 ### What competitors can copy (and will):
-- Policy engine  2-3 months
-- Dashboard  1-2 months  
-- @governed_tool decorator  2 weeks
-- LangChain adapter  2 weeks
-- Receipt hash  1 week
-- Approval queue  1 month
+- Policy engine — 2-3 months
+- Dashboard — 1-2 months  
+- @governed_tool decorator — 2 weeks
+- LangChain adapter — 2 weeks
+- Receipt hash — 1 week
+- Approval queue — 1 month
 
 ### What is much harder to copy:
 - Receipt vocabulary that developers, auditors, SIEMs, and compliance tools speak
@@ -96,15 +96,15 @@ The "Runtime Permission Layer" is the **HOW**  what developers install. "Proof-G
 - Enterprise integrations that depend on the receipt format
 
 ### The real moat:
-**If people start asking "Does your agent framework produce ASR-compatible receiptsWARNING" AVS has moved from tool to category infrastructure.**
+**If people start asking "Does your agent framework produce ASR-compatible receipts?" AVS has moved from tool to category infrastructure.**
 
 This is the Kubernetes playbook: open-source the primitive, let the ecosystem build on it, monetize the operational burden.
 
 ---
 
-## V. The Strategy: Distribution  Standard  Enterprise
+## V. The Strategy: Distribution → Standard → Enterprise
 
-### Phase 1: Distribution (NOW  v0.3.5/0.3.6)
+### Phase 1: Distribution (NOW — v0.3.5/0.3.6)
 **Goal:** Get AVS installed, used, and talked about.
 
 Tactics:
@@ -116,7 +116,7 @@ Tactics:
 
 Success metric: 100+ GitHub stars, 3+ design partners, 1+ blog post mentioning AVS
 
-### Phase 2: Standard (v0.3.6  v0.4.2)
+### Phase 2: Standard (v0.3.6 — v0.4.2)
 **Goal:** Make ASR-1 the default receipt format for agent actions.
 
 Tactics:
@@ -125,7 +125,7 @@ Tactics:
 - Example receipts for all 4 decision types
 - CloudEvents / OpenTelemetry export profiles
 - OWASP Agentic AI engagement
-- Blog: "What is Proof-Gated ActionWARNING"
+- Blog: "What is Proof-Gated Action?"
 
 Success metric: Other projects reference ASR-1, 1+ SIEM integration request, OWASP acknowledgement
 
@@ -156,27 +156,27 @@ It creates three primitives:
 
 ### Primitive 1: Agent Identity
 ```
-Before: agent_id = "agent_001"   a string anyone can spoof
+Before: agent_id = "agent_001"  ← a string anyone can spoof
 After:  AgentIdentity with agent_type, environment, privilege_level,
         public_key_fingerprint, status, parent_agent_id, human_owner_id
-         an accountable non-human actor profile
+        ← an accountable non-human actor profile
 ```
 
 ### Primitive 2: Tool Manifest
 ```
-Before: tool_name = "deploy_to_production"   just a name
+Before: tool_name = "deploy_to_production"  ← just a name
 After:  ToolManifest with module_path, function_name, registered_by,
         registered_at, policy_binding, risk_class, manifest_hash
-         a registered, attestable execution surface
+        ← a registered, attestable execution surface
 ```
 
 ### Primitive 3: Action Receipt (ASR-1)
 ```
-Before: "Action was denied"   a log line
+Before: "Action was denied"  ← a log line
 After:  Structured receipt with agent_identity, action, tool_manifest,
         governance (decision, risk, trust, policy), execution status,
         receipt_hash, previous_receipt_hash, gateway_signature
-         a portable, verifiable evidence object
+        ← a portable, verifiable evidence object
 ```
 
 Together:
@@ -184,7 +184,7 @@ Together:
 
 ---
 
-## VII. The Insurance Thread  Correct Framing
+## VII. The Insurance Thread — Correct Framing
 
 ### What is true:
 - Insurance needs evidence of control effectiveness
@@ -209,23 +209,23 @@ The insurance thread is:
 
 The five-level learning model:
 ```
-Level 1: No learning           TODAY (deterministic policy gate)
-Level 2: Local learning        v0.4.x (trust/risk per org)
-Level 3: Org benchmarking      v0.5.x (one company sees its position)
-Level 4: Cross-customer anonymized learning   Future (industry patterns)
-Level 5: Insurance-grade actuarial dataset     Future (receipts linked to claims)
+Level 1: No learning          ← TODAY (deterministic policy gate)
+Level 2: Local learning       ← v0.4.x (trust/risk per org)
+Level 3: Org benchmarking     ← v0.5.x (one company sees its position)
+Level 4: Cross-customer anonymized learning  ← Future (industry patterns)
+Level 5: Insurance-grade actuarial dataset    ← Future (receipts linked to claims)
 ```
 
 AVS is at Level 1. That is fine. The architecture supports Level 5 when the market arrives.
 
 ---
 
-## VIII. The Learning Question  Resolved
+## VIII. The Learning Question — Resolved
 
-### Does AVS need to learn from all agents' data to workWARNING
+### Does AVS need to learn from all agents' data to work?
 **No.** AVS works as a deterministic policy gate without any learning.
 
-### Does AVS need to learn to become valuable for insurance/benchmarkingWARNING
+### Does AVS need to learn to become valuable for insurance/benchmarking?
 **Yes.** But the learning is:
 - Local (per organization), not global
 - From metadata/receipts, not raw sensitive data
@@ -254,7 +254,7 @@ PointGuard AI and Singulr AI are well-funded. They could add receipts faster tha
 "Agent Action Provenance" is a new category. It may take years for the market to understand it. The defense: win as a practical developer tool FIRST ("runtime permission layer"), then educate the market on the bigger vision ("proof-gated action").
 
 ### Risk 4: Standards Risk (MEDIUM)
-If AVS claims "standard" too early, it gets challenged. If it doesn't claim it, someone else might define the format. The defense: call it an "experimental draft profile"  honest, credible, defensible.
+If AVS claims "standard" too early, it gets challenged. If it doesn't claim it, someone else might define the format. The defense: call it an "experimental draft profile" — honest, credible, defensible.
 
 ### Risk 5: Execution Risk (HIGH)
 The user has built a lot of code but hasn't launched publicly yet. The launch is the real test. The defense: launch NOW. v0.3.6 is good enough. Perfect is the enemy of shipped.
@@ -264,14 +264,14 @@ The user has built a lot of code but hasn't launched publicly yet. The launch is
 ## X. What NOT To Do
 
 ### Do NOT:
-1. Submit to IETF/W3C yet  no users, no credibility
-2. Talk about insurance publicly  premature, sounds speculative
-3. Build HiveMind  single-agent governance must be proven first
-4. Switch to BSL license  suppresses adoption when it matters most
-5. Claim "world's first" or "official standard"  invites challenge
+1. Submit to IETF/W3C yet — no users, no credibility
+2. Talk about insurance publicly — premature, sounds speculative
+3. Build HiveMind — single-agent governance must be proven first
+4. Switch to BSL license — suppresses adoption when it matters most
+5. Claim "world's first" or "official standard" — invites challenge
 6. Build enterprise features before design partners ask for them
-7. Use "sovereign" language publicly  launch-dangerous
-8. Try to out-code everyone  out-position them by defining the primitive
+7. Use "sovereign" language publicly — launch-dangerous
+8. Try to out-code everyone — out-position them by defining the primitive
 
 ---
 
@@ -313,4 +313,4 @@ The build is complete. The strategy is clear. The launch is the next move.
 
 > **Every agent action gets a receipt.**
 >
-> AVS Gateway  Proof-Gated Action for AI Agents
+> AVS Gateway — Proof-Gated Action for AI Agents

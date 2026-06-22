@@ -1,4 +1,4 @@
-# Competitive Positioning  AVS Gateway
+# Competitive Positioning — AVS Gateway
 
 > **Document Purpose:** Map where AVS Gateway sits in the AI agent tooling landscape, compare honestly against adjacent solutions, and provide reusable positioning language.  
 > **Version:** v0.3.4 Developer Release Foundation  
@@ -8,7 +8,7 @@
 
 ## 1. Market Map
 
-The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **runtime execution governance** layer  the bridge between agent intent and real-world action. Below is how we relate to each adjacent category.
+The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **runtime execution governance** layer — the bridge between agent intent and real-world action. Below is how we relate to each adjacent category.
 
 ### Observability Layer (after execution)
 
@@ -16,7 +16,7 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **What they do:** Log, trace, and monitor what agents did *after* execution. Provide visibility into token usage, latency, chain steps, and errors. Essential for debugging and performance optimization.
 
-**AVS difference:** AVS controls whether actions execute *at all*. Observability tools tell you what happened; AVS decides what is permitted to happen and produces a cryptographically signed receipt for every decision. They are complementary  AVS generates the decisions that observability tools can then log.
+**AVS difference:** AVS controls whether actions execute *at all*. Observability tools tell you what happened; AVS decides what is permitted to happen and produces a cryptographically signed receipt for every decision. They are complementary — AVS generates the decisions that observability tools can then log.
 
 **Relationship:** Complementary. Use both.
 
@@ -26,9 +26,9 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **Represented by:** Guardrails AI, Rebuff, LLM Guard
 
-**What they do:** Validate the *text output* of LLMs  checking for PII leakage, toxic content, factual consistency, prompt injection indicators. They inspect what the model *says*.
+**What they do:** Validate the *text output* of LLMs — checking for PII leakage, toxic content, factual consistency, prompt injection indicators. They inspect what the model *says*.
 
-**AVS difference:** AVS governs *runtime tool execution*  file deletions, API calls, deployments  not text output. A model could produce perfectly safe text while attempting to wipe a database. AVS gates the action, not the words.
+**AVS difference:** AVS governs *runtime tool execution* — file deletions, API calls, deployments — not text output. A model could produce perfectly safe text while attempting to wipe a database. AVS gates the action, not the words.
 
 **Relationship:** Stackable. AVS can run alongside output validators. Different layers.
 
@@ -38,9 +38,9 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **Represented by:** OPA (Open Policy Agent), OpenFGA, Cedar (AWS), Zanzibar-inspired systems
 
-**What they do:** Make authorization decisions: "Can user X do action Y on resource ZWARNING" General-purpose, battle-tested, often used for microservice authorization.
+**What they do:** Make authorization decisions: "Can user X do action Y on resource Z?" General-purpose, battle-tested, often used for microservice authorization.
 
-**AVS difference:** AVS is purpose-built for agent actions. It includes framework adapters (LangChain, plain Python), 8-dimension risk scoring, time-weighted trust decay, REQUIRE_APPROVAL workflows, and Ed25519-signed receipts with SHA-256 audit chains. OPA could implement similar logic, but you'd build the agent-specific plumbing  adapters, receipt format, trust decay  yourself.
+**AVS difference:** AVS is purpose-built for agent actions. It includes framework adapters (LangChain, plain Python), 8-dimension risk scoring, time-weighted trust decay, REQUIRE_APPROVAL workflows, and Ed25519-signed receipts with SHA-256 audit chains. OPA could implement similar logic, but you'd build the agent-specific plumbing — adapters, receipt format, trust decay — yourself.
 
 **Relationship:** AVS could delegate to OPA as a policy backend. AVS is the agent-aware integration layer.
 
@@ -50,9 +50,9 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **Represented by:** Lakera, HiddenLayer, Protect AI, Robust Intelligence
 
-**What they do:** Protect the AI model itself  prompt injection defense, training data poisoning detection, model theft protection, data loss prevention at the model boundary.
+**What they do:** Protect the AI model itself — prompt injection defense, training data poisoning detection, model theft protection, data loss prevention at the model boundary.
 
-**AVS difference:** AVS is a *runtime constraint engine for agent actions*, not model-layer security. We don't inspect prompts or defend against adversarial inputs. We gate what tools the agent can invoke, with what parameters, under what conditions. If the model is compromised, AVS is your last line  limiting what the compromised agent can actually *do*.
+**AVS difference:** AVS is a *runtime constraint engine for agent actions*, not model-layer security. We don't inspect prompts or defend against adversarial inputs. We gate what tools the agent can invoke, with what parameters, under what conditions. If the model is compromised, AVS is your last line — limiting what the compromised agent can actually *do*.
 
 **Relationship:** Defense in depth. They protect the model; AVS constrains what a (possibly compromised) model can execute.
 
@@ -64,7 +64,7 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **What they do:** Inspect prompts going into models and responses coming out. Filter for banned topics, PII, compliance violations.
 
-**AVS difference:** AVS gates *execution*  tool invocations, file system access, external API calls  not text content. A prompt firewall might allow a perfectly benign prompt that results in a tool call deleting production data. AVS intercepts the tool call.
+**AVS difference:** AVS gates *execution* — tool invocations, file system access, external API calls — not text content. A prompt firewall might allow a perfectly benign prompt that results in a tool call deleting production data. AVS intercepts the tool call.
 
 **Relationship:** Different layer entirely. Prompt firewalls are conversational; AVS is operational.
 
@@ -76,7 +76,7 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 **What they do:** Run agent code in isolated environments with restricted network, filesystem, and resource boundaries. Contain the blast radius if something goes wrong.
 
-**AVS difference:** Sandboxes limit *where* code runs. AVS is a *semantic governance layer* that decides *whether* an action should execute based on policy, risk, and trust  independent of where it runs. A sandboxed agent can still delete all files in its sandbox; AVS can deny that deletion based on policy. Sandboxes are about isolation; AVS is about authorization.
+**AVS difference:** Sandboxes limit *where* code runs. AVS is a *semantic governance layer* that decides *whether* an action should execute based on policy, risk, and trust — independent of where it runs. A sandboxed agent can still delete all files in its sandbox; AVS can deny that deletion based on policy. Sandboxes are about isolation; AVS is about authorization.
 
 **Relationship:** Complementary and highly recommended together. AVS decides; sandbox contains.
 
@@ -97,28 +97,28 @@ The AI agent tooling landscape has multiple layers. AVS Gateway occupies the **r
 
 | Capability | AVS Gateway | LangSmith | Guardrails AI | OPA | Lakera | E2B |
 |------------|:-----------:|:---------:|:-------------:|:---:|:------:|:---:|
-| **Intercept agent actions** |  |  |  |  |  | N/A |
-| **Enforce ALLOW/DENY decisions** |  |  |  |  |  |  |
-| **Cryptographic receipts (Ed25519)** |  |  |  |  |  |  |
-| **Immutable audit chain (SHA-256)** |  |  |  |  |  |  |
-| **REQUIRE_APPROVAL workflow** |  |  |  |  |  |  |
-| **QUARANTINE decision** |  |  |  |  |  |  |
-| **Framework adapters (LangChain, etc.)** |  |  |  |  |  | N/A |
-| **Declarative policy engine (YAML)** |  |  |  |  (Rego) |  |  |
-| **Risk scoring (multi-dimension)** |  (8D) |  |  |  |  |  |
-| **Trust memory (time-weighted decay)** |  |  |  |  |  |  |
-| **Offline capable / local-first** |  |  |  |  |  |  |
-| **Open source license** |  (Apache 2.0) |  (proprietary) |  (Apache 2.0) |  (Apache 2.0) |  (proprietary) |  (Apache 2.0) |
-| **Observe / trace execution** |  (receipts) |  |  |  |  |  |
-| **Validate LLM text output** |  |  |  |  |  | N/A |
-| **Prompt injection detection** |  |  |  |  |  | N/A |
-| **Sandboxed execution** |  |  |  |  |  |  |
+| **Intercept agent actions** | ✅ | ❌ | ❌ | 🔶 | ❌ | N/A |
+| **Enforce ALLOW/DENY decisions** | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Cryptographic receipts (Ed25519)** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Immutable audit chain (SHA-256)** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **REQUIRE_APPROVAL workflow** | ✅ | ❌ | ❌ | 🔶 | ❌ | ❌ |
+| **QUARANTINE decision** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Framework adapters (LangChain, etc.)** | ✅ | ✅ | 🔶 | ❌ | ❌ | N/A |
+| **Declarative policy engine (YAML)** | ✅ | ❌ | ✅ | ✅ (Rego) | ❌ | ❌ |
+| **Risk scoring (multi-dimension)** | ✅ (8D) | ❌ | 🔶 | ❌ | ❌ | ❌ |
+| **Trust memory (time-weighted decay)** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Offline capable / local-first** | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
+| **Open source license** | ✅ (Apache 2.0) | ❌ (proprietary) | ✅ (Apache 2.0) | ✅ (Apache 2.0) | ❌ (proprietary) | ✅ (Apache 2.0) |
+| **Observe / trace execution** | 🔶 (receipts) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Validate LLM text output** | ❌ | ❌ | ✅ | ❌ | ❌ | N/A |
+| **Prompt injection detection** | ❌ | ❌ | ❌ | ❌ | ✅ | N/A |
+| **Sandboxed execution** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 **Legend:**
--   Core capability, native
--   Partial or related capability
--   Not a capability of this tool
-- N/A  Not applicable to this category
+- ✅ — Core capability, native
+- 🔶 — Partial or related capability
+- ❌ — Not a capability of this tool
+- N/A — Not applicable to this category
 
 ---
 
@@ -134,11 +134,11 @@ Not locked to LangChain, not locked to any framework. The core is a Python libra
 
 ### Evidence, not just logging
 
-Every intercepted action produces an Ed25519 cryptographically signed receipt + SHA-256 audit chain. This is tamper-evident evidence of what was attempted, what decision was made, and why. Not a log entry  a verifiable record. This matters for compliance, incident investigation, and trust.
+Every intercepted action produces an Ed25519 cryptographically signed receipt + SHA-256 audit chain. This is tamper-evident evidence of what was attempted, what decision was made, and why. Not a log entry — a verifiable record. This matters for compliance, incident investigation, and trust.
 
 ### Fail-closed: safe by default
 
-If policy evaluation errors, if configuration is missing, if trust can't be computed  the default is DENY. No silent failures that allow unauthorized actions. This is a safety-critical design choice.
+If policy evaluation errors, if configuration is missing, if trust can't be computed — the default is DENY. No silent failures that allow unauthorized actions. This is a safety-critical design choice.
 
 ### Local-first: no vendor lock-in
 
@@ -174,7 +174,7 @@ We're not a known name. There's no large community, no conference talks, no Gart
 
 ### No model-layer security
 
-If your threat model is prompt injection, model theft, or training data poisoning, AVS doesn't help. You still need Lakera, HiddenLayer, or similar. AVS is about constraining what a (possibly compromised) agent can execute  it's a last line of defense, not a complete security solution.
+If your threat model is prompt injection, model theft, or training data poisoning, AVS doesn't help. You still need Lakera, HiddenLayer, or similar. AVS is about constraining what a (possibly compromised) agent can execute — it's a last line of defense, not a complete security solution.
 
 ---
 
@@ -182,7 +182,7 @@ If your threat model is prompt injection, model theft, or training data poisonin
 
 **Canonical:**
 
-> For engineering teams building Python-based AI agents that touch real systems, AVS Gateway is the runtime permission layer that intercepts, evaluates, and governs every agent action with cryptographically signed receipts  unlike observability tools that only log what already happened, output validators that only check text, or authorization engines that require you to build all the agent-specific plumbing yourself.
+> For engineering teams building Python-based AI agents that touch real systems, AVS Gateway is the runtime permission layer that intercepts, evaluates, and governs every agent action with cryptographically signed receipts — unlike observability tools that only log what already happened, output validators that only check text, or authorization engines that require you to build all the agent-specific plumbing yourself.
 
 **Short form:**
 
@@ -196,23 +196,23 @@ If your threat model is prompt injection, model theft, or training data poisonin
 
 ## 6. Key Messages
 
-### Message 1  The Problem (for general audiences)
+### Message 1 — The Problem (for general audiences)
 
-> AI agents can delete files, send emails, charge credit cards, and deploy to production  but there's no permission layer deciding what should execute. Agents run with implicit trust. When something goes wrong, there's no evidence trail. AVS Gateway fixes that.
+> AI agents can delete files, send emails, charge credit cards, and deploy to production — but there's no permission layer deciding what should execute. Agents run with implicit trust. When something goes wrong, there's no evidence trail. AVS Gateway fixes that.
 
-### Message 2  The Integration (for developers)
+### Message 2 — The Integration (for developers)
 
-> One decorator. `@governed_tool` on any Python function. Your agent logic doesn't change. Policy decides what executes. You get ALLOW, DENY, REQUIRE_APPROVAL, or QUARANTINE  plus a signed receipt for every decision.
+> One decorator. `@governed_tool` on any Python function. Your agent logic doesn't change. Policy decides what executes. You get ALLOW, DENY, REQUIRE_APPROVAL, or QUARANTINE — plus a signed receipt for every decision.
 
-### Message 3  The Architecture (for technical evaluators)
+### Message 3 — The Architecture (for technical evaluators)
 
-> AVS sits between agent intent and real-world action. It doesn't replace your framework, your observability tool, or your sandbox. It's the governance layer that asks "should this runWARNING" before anything happens. Declarative YAML policy. 8-dimension risk scoring. Time-weighted trust decay. Offline by design.
+> AVS sits between agent intent and real-world action. It doesn't replace your framework, your observability tool, or your sandbox. It's the governance layer that asks "should this run?" before anything happens. Declarative YAML policy. 8-dimension risk scoring. Time-weighted trust decay. Offline by design.
 
-### Message 4  The Evidence (for security/compliance audiences)
+### Message 4 — The Evidence (for security/compliance audiences)
 
-> Every decision produces an Ed25519 cryptographically signed receipt with a SHA-256 audit chain. Tamper-evident. Immutable. You don't just know what your agent did  you have cryptographic proof of what it tried to do, what was allowed, what was denied, and why.
+> Every decision produces an Ed25519 cryptographically signed receipt with a SHA-256 audit chain. Tamper-evident. Immutable. You don't just know what your agent did — you have cryptographic proof of what it tried to do, what was allowed, what was denied, and why.
 
-### Message 5  The Stage (for transparency)
+### Message 5 — The Stage (for transparency)
 
 > AVS is alpha-stage open source (Apache 2.0, v0.3.4). 470+ tests passing. It works, but it needs real-world validation. We're recruiting three design partners who want execution governance without the enterprise sales cycle. No vendor lock-in. No cloud dependency. The code is yours.
 
@@ -222,15 +222,15 @@ If your threat model is prompt injection, model theft, or training data poisonin
 
 ### "We already use LangSmith"
 
-LangSmith is excellent for tracing and observability  we recommend it. AVS is complementary. LangSmith shows you what happened. AVS decides whether actions execute and produces signed receipts. Use both: AVS for governance, LangSmith for observability.
+LangSmith is excellent for tracing and observability — we recommend it. AVS is complementary. LangSmith shows you what happened. AVS decides whether actions execute and produces signed receipts. Use both: AVS for governance, LangSmith for observability.
 
 ### "We already use Guardrails AI"
 
-Guardrails validates LLM text outputs  PII, toxicity, structure. AVS governs runtime tool execution. They're different layers. A guardrailed model can still attempt to delete a file or call a production API. AVS gates those actions. Stack both.
+Guardrails validates LLM text outputs — PII, toxicity, structure. AVS governs runtime tool execution. They're different layers. A guardrailed model can still attempt to delete a file or call a production API. AVS gates those actions. Stack both.
 
 ### "We already use OPA"
 
-OPA is a powerful general-purpose policy engine. If you've already built agent-specific adapters, receipt generation, risk scoring, trust decay, and approval workflows on top of OPA, AVS may not add much. If you haven't  AVS gives you all of that purpose-built for agent actions, with the option to delegate to OPA as a policy backend later.
+OPA is a powerful general-purpose policy engine. If you've already built agent-specific adapters, receipt generation, risk scoring, trust decay, and approval workflows on top of OPA, AVS may not add much. If you haven't — AVS gives you all of that purpose-built for agent actions, with the option to delegate to OPA as a policy backend later.
 
 ### "We already use Lakera / HiddenLayer"
 
@@ -242,7 +242,7 @@ Sandboxes limit where code runs. AVS decides whether specific actions execute. A
 
 ### "This seems early / risky"
 
-It is. AVS is alpha-stage open source. That's why we're not selling  we're recruiting design partners. Apache 2.0 means you can fork and own it. No contracts, no cloud dependency, no vendor lock-in. Evaluate on technical merit. If it doesn't fit, you've lost a few hours, not a procurement cycle.
+It is. AVS is alpha-stage open source. That's why we're not selling — we're recruiting design partners. Apache 2.0 means you can fork and own it. No contracts, no cloud dependency, no vendor lock-in. Evaluate on technical merit. If it doesn't fit, you've lost a few hours, not a procurement cycle.
 
 ---
 
@@ -258,7 +258,7 @@ Lead with: shipping speed + safety. "Your team doesn't need to build guardrails 
 
 ### CISO / Security
 
-Lead with: receipts, audit chain, declarative policy, fail-closed design. Emphasize local-first (data stays in your environment) and Apache 2.0 (no vendor risk). Be honest about no RBAC/SSO yet  share roadmap.
+Lead with: receipts, audit chain, declarative policy, fail-closed design. Emphasize local-first (data stays in your environment) and Apache 2.0 (no vendor risk). Be honest about no RBAC/SSO yet — share roadmap.
 
 ### Founder / CTO at Startup
 

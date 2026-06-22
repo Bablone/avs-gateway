@@ -5,9 +5,9 @@ Tests CRUD operations, schema init, thread safety, and
 the persistence contract (data survives close + reopen).
 """
 
+import gc
 import json
 import os
-import gc
 import sys
 import tempfile
 import time
@@ -19,36 +19,41 @@ import pytest
 
 from avs_gateway.storage.sqlite_store import SqliteStore
 
-DB_PATH = os.path.join(tempfile.gettempdir(), "avs_test_gateway.sqlite3")
 
-def _remove_db_file_safely(path: str) -> None:
-    """Remove SQLite test DB with Windows-safe retry semantics."""
-    gc.collect()
-    for _ in range(20):
+def _windows_safe_remove(path: str, retries: int = 5) -> None:
+    """Remove a file with retry logic for Windows file locks.
+
+    SQLite may hold a lock briefly after close(). On Windows this
+    causes PermissionError. We retry with exponential backoff and
+    force garbage collection to release connection references.
+    """
+    for attempt in range(retries):
         try:
             if os.path.exists(path):
                 os.remove(path)
             return
         except PermissionError:
-            gc.collect()
-            time.sleep(0.05)
-
-    if os.path.exists(path):
-        os.remove(path)
-
+            if attempt == 0:
+                gc.collect()  # Force release of connection references
+            if attempt < retries - 1:
+                time.sleep(0.05 * (2 ** attempt))
+            else:
+                raise
 
 
 @pytest.fixture
-def store():
-    """Fresh SqliteStore for each test."""
-    if os.path.exists(DB_PATH):
-        _remove_db_file_safely(DB_PATH)
-    s = SqliteStore(db_path=DB_PATH)
+def store(tmp_path):
+    """Fresh SqliteStore for each test with unique DB path.
+
+    Uses tmp_path (pytest built-in) for a unique temp directory per test,
+    eliminating cross-test SQLite lock contention on Windows.
+    """
+    db_path = str(tmp_path / "avs_test.sqlite3")
+    s = SqliteStore(db_path=db_path)
     s.init_schema()
     yield s
     s.close_all()
-    if os.path.exists(DB_PATH):
-        _remove_db_file_safely(DB_PATH)
+    _windows_safe_remove(db_path)
 
 
 @pytest.fixture
@@ -228,10 +233,11 @@ class TestSqliteStore:
     def test_data_survives_reopen(self, store, sample_action_dict, sample_decision_dict):
         """Data must persist after close + reopen (restart simulation)."""
         aid = store.create_approval_request(sample_action_dict, sample_decision_dict)
+        db_path = store.db_path  # Remember the path before closing
         store.close_all()
 
         # Reopen same DB file
-        store2 = SqliteStore(db_path=DB_PATH)
+        store2 = SqliteStore(db_path=db_path)
         # No init_schema needed -- tables already exist
         approval = store2.get_approval_request(aid)
         assert approval is not None

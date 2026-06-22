@@ -1,5 +1,5 @@
 """
-AVS Quickstart 04  Custom Business Action
+AVS Quickstart 04 — Custom Business Action
 
 THE UNIVERSAL CONTROL PLANE PROOF.
 
@@ -27,7 +27,7 @@ from avs_gateway.models.action_request import ActionType, create_action_request
 
 def main():
     print("=" * 60)
-    print("  AVS Quickstart 04  Custom Business Action")
+    print("  AVS Quickstart 04 — Custom Business Action")
     print("  Universal Control Plane Proof")
     print("=" * 60)
     print("\n  This proves AVS governs actions it has never seen.")
@@ -97,9 +97,9 @@ def main():
         print(f"    Receipt   : {receipt.receipt_hash[:24]}...")
     else:
         receipt = gateway.record(action, decision)
-        print(f"    Result    : BLOCKED  tool did NOT execute")
+        print(f"    Result    : BLOCKED — tool did NOT execute")
         print(f"    Receipt   : {receipt.receipt_hash[:24]}...")
-        print(f"     Kubernetes cluster was never touched")
+        print(f"    -> Kubernetes cluster was never touched")
 
     # ---- CRITICAL ASSERTION ----
     print("\n" + "=" * 60)
@@ -126,10 +126,10 @@ def main():
     print("  the tools, the policies, and the meaning.")
     print("")
     print("  Custom actions governed:")
-    print("     deploy_to_production")
-    print("     trade_stock, refund_customer")
-    print("     access_patient_records")
-    print("     ANY action your agents take")
+    print("    • deploy_to_production")
+    print("    • trade_stock, refund_customer")
+    print("    • access_patient_records")
+    print("    • ANY action your agents take")
     print("")
     print("  Every agent action gets a receipt.")
     print("=" * 60)

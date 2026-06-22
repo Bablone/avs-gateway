@@ -1,0 +1,5 @@
+# Exclude from git archive
+**/__pycache__ export-ignore
+**/*.egg-info export-ignore
+.pytest_cache export-ignore
+sandbox/output.txt export-ignore

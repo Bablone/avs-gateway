@@ -1,4 +1,4 @@
-# Research: Agentic Payments Landscape  June 2026
+# Research: Agentic Payments Landscape — June 2026
 ## Deep Dive on Mastercard AP4M, x402 Vulnerabilities, and AVS Positioning
 
 **Research Date:** 2026-06-21
@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Mastercard AP4M  The Big Launch (June 10, 2026)
+## 1. Mastercard AP4M — The Big Launch (June 10, 2026)
 
 Mastercard launched Agent Pay for Machines (AP4M) with 30+ partners. This is not a pilot. It is a coordinated ecosystem launch.
 
@@ -14,10 +14,10 @@ Mastercard launched Agent Pay for Machines (AP4M) with 30+ partners. This is not
 Coinbase, Stripe, Adyen, Ripple, Solana Foundation, Polygon, Aave Labs, OKX, Cloudflare, Alchemy, Anchorage Digital, MoonPay, Crossmint, Turnkey, and 20+ others spanning acquirers, stablecoin rails, wallet infrastructure, agent platforms.
 
 ### Four Capabilities
-1. **Credentialing**  Every agent is credentialed via Verifiable Intent (Mastercard/Google joint framework)
-2. **Permissioning**  Programmatic spending limits and authorization rules
-3. **Transacting**  Continuous high-frequency commerce across providers
-4. **Settling**  Guaranteed multi-rail settlement (cards, accounts, stablecoins)
+1. **Credentialing** — Every agent is credentialed via Verifiable Intent (Mastercard/Google joint framework)
+2. **Permissioning** — Programmatic spending limits and authorization rules
+3. **Transacting** — Continuous high-frequency commerce across providers
+4. **Settling** — Guaranteed multi-rail settlement (cards, accounts, stablecoins)
 
 ### Key Technical Choices
 - Agent permissions recorded on public blockchains: **Polygon, Solana, Base**
@@ -26,23 +26,23 @@ Coinbase, Stripe, Adyen, Ripple, Solana Foundation, Polygon, Aave Labs, OKX, Clo
 - Settlement guarantee backed by Mastercard's global network
 
 ### What Jorn Lambert (Mastercard CPO) Said
-> "Machine payments can make it possible for services to be bought and sold among agents at fundamentally different scales than payments today  very high volumes, very small values, very fast, and at extremely low latency."
+> "Machine payments can make it possible for services to be bought and sold among agents at fundamentally different scales than payments today — very high volumes, very small values, very fast, and at extremely low latency."
 
 ### What Raj Dhamodharan (Mastercard EVP) Said
 > "These are problems that we've solved before in the B2B world and the carded world for decades. We're bringing the same level of trust and ability to find the right set of agents, ability to convey that you're actually going to complete the payment and to make sure that people can get paid."
 
 ---
 
-## 2. x402 Protocol  Critical Vulnerabilities Found (May 2026)
+## 2. x402 Protocol — Critical Vulnerabilities Found (May 2026)
 
 An academic security analysis from Zhejiang University, City University of Hong Kong, and Chinese University of Hong Kong found **systemic vulnerabilities** in x402 implementations.
 
 ### Five Security Invariants Defined
-1. **Payment Integrity**  Delivery implies on-chain settlement
-2. **Value Consistency**  Authorized amount equals settled amount
-3. **Context Binding**  Payment bound to specific resource
-4. **Authorization Uniqueness**  One nonce = one service request
-5. **Execution Conservation**  Computational work backed by secured value
+1. **Payment Integrity** — Delivery implies on-chain settlement
+2. **Value Consistency** — Authorized amount equals settled amount
+3. **Context Binding** — Payment bound to specific resource
+4. **Authorization Uniqueness** — One nonce = one service request
+5. **Execution Conservation** — Computational work backed by secured value
 
 ### Vulnerabilities Discovered
 
@@ -51,7 +51,7 @@ An academic security analysis from Zhejiang University, City University of Hong 
 | **Cross-resource substitution** | Context Binding (I3) | Payment proof transplanted to unauthorized resource |
 | **Probabilistic service duplication** | Authorization Uniqueness (I4) | One payment = multiple service deliveries (6% success rate empirically) |
 | **Allowance overdraft** | Value Consistency (I2) + Execution Conservation (I5) | 97.76% leakage ratio demonstrated |
-| **Denial of settlement** | Payment Integrity (I1) | 100% leakage ratio  service delivered, zero payment settled |
+| **Denial of settlement** | Payment Integrity (I1) | 100% leakage ratio — service delivered, zero payment settled |
 | **Onchain front-running** | Payment Integrity (I1) | Settlement failure via gas fee manipulation |
 
 ### Root Cause
@@ -74,9 +74,9 @@ All findings disclosed to Coinbase Developer Platform and ThirdWeb. Attack code 
 
 AWS shipped AgentCore Payments with Coinbase and Stripe. This was part of a 30-day sprint where three hyperscaler-grade payment stacks launched:
 
-- **May ~1:** Circle Nanopayments  mainnet across 11 chains
-- **May ~4:** Google Cloud + Solana Foundation  Pay.sh
-- **May 7:** AWS + Coinbase + Stripe  AgentCore Payments
+- **May ~1:** Circle Nanopayments → mainnet across 11 chains
+- **May ~4:** Google Cloud + Solana Foundation → Pay.sh
+- **May 7:** AWS + Coinbase + Stripe → AgentCore Payments
 
 ### Numbers (as of late April 2026)
 - **165 million+ transactions** processed
@@ -94,7 +94,7 @@ AWS shipped AgentCore Payments with Coinbase and Stripe. This was part of a 30-d
 
 ---
 
-## 4. The Protocol Landscape  Four Competing Standards
+## 4. The Protocol Landscape — Four Competing Standards
 
 | Protocol | Creator | Focus | Strength | Weakness |
 |----------|---------|-------|----------|----------|
@@ -106,60 +106,60 @@ AWS shipped AgentCore Payments with Coinbase and Stripe. This was part of a 30-d
 
 ### How They Layer
 ```
-Layer 1: Authorization     AP2 defines what agent can spend
-Layer 2: Discovery/Commerce  ACP handles service discovery
-Layer 3: Payment Execution   x402 handles micropayment at HTTP level
-Layer 4: Trust/Identity      TAP provides identity infrastructure
+Layer 1: Authorization    → AP2 defines what agent can spend
+Layer 2: Discovery/Commerce → ACP handles service discovery
+Layer 3: Payment Execution  → x402 handles micropayment at HTTP level
+Layer 4: Trust/Identity     → TAP provides identity infrastructure
 ```
 
 A production system might use **AP2 for governance + ACP for discovery + x402 for execution**.
 
 ---
 
-## 5. What This Means for AVS  The Critical Insight
+## 5. What This Means for AVS — The Critical Insight
 
 ### Every Payment Protocol Has the Same Gap
 
-Mastercard AP4M, x402, AWS AgentCore, AP2, ACP, TAP  all solve:
-> **"Can this agent payWARNING"**
+Mastercard AP4M, x402, AWS AgentCore, AP2, ACP, TAP — all solve:
+> **"Can this agent pay?"**
 
 None fully solve:
-> **"Should this agent be allowed to take this actionWARNING"**
+> **"Should this agent be allowed to take this action?"**
 
 ### The Layer Diagram
 
 ```
-
-  AGENT (LLM + reasoning)            
-
-              
-   AVS lives here
-  PROOF-GATED ACTION LAYER                (AVS Gateway)
-   Policy evaluation              
-   Risk scoring                   
-   Trust scoring                  
-   Agent identity verification    
-   Tool manifest validation       
-   Approval workflow              
-   ASR-1 receipt generation       
-
-              
-   Payment protocols live here
-  PAYMENT AUTHORIZATION LAYER             (AP4M, x402, AP2, ACP, TAP)
-   Credentialing                  
-   Spending limits                
-   Payment execution              
-   Settlement                     
-
-              
-
-  EXECUTION LAYER                    
-   API call                       
-   File access                    
-   Database query                 
-   Deployment                     
-   Payment settlement             
-
+┌─────────────────────────────────────┐
+│  AGENT (LLM + reasoning)            │
+└─────────────┬───────────────────────┘
+              │
+┌─────────────▼───────────────────────┐  ← AVS lives here
+│  PROOF-GATED ACTION LAYER           │     (AVS Gateway)
+│  ├── Policy evaluation              │
+│  ├── Risk scoring                   │
+│  ├── Trust scoring                  │
+│  ├── Agent identity verification    │
+│  ├── Tool manifest validation       │
+│  ├── Approval workflow              │
+│  └── ASR-1 receipt generation       │
+└─────────────┬───────────────────────┘
+              │
+┌─────────────▼───────────────────────┐  ← Payment protocols live here
+│  PAYMENT AUTHORIZATION LAYER        │     (AP4M, x402, AP2, ACP, TAP)
+│  ├── Credentialing                  │
+│  ├── Spending limits                │
+│  ├── Payment execution              │
+│  └── Settlement                     │
+└─────────────┬───────────────────────┘
+              │
+┌─────────────▼───────────────────────┐
+│  EXECUTION LAYER                    │
+│  ├── API call                       │
+│  ├── File access                    │
+│  ├── Database query                 │
+│  ├── Deployment                     │
+│  └── Payment settlement             │
+└─────────────────────────────────────┘
 ```
 
 ### The x402 Vulnerability Lesson
@@ -178,8 +178,8 @@ Mastercard's Verifiable Intent framework proves an agent was **authorized to act
 AVS's ASR-1 receipts prove an agent's action was **governed before execution**.
 
 These are complementary:
-- Verifiable Intent = **who** is this agent and **who authorized** itWARNING
-- ASR-1 = **what** did the agent attempt, **what policy applied**, and **what was decided**WARNING
+- Verifiable Intent = **who** is this agent and **who authorized** it?
+- ASR-1 = **what** did the agent attempt, **what policy applied**, and **what was decided**?
 
 ### The New Positioning Sentence
 
@@ -196,7 +196,7 @@ The stakes just got higher. A denied file delete is recoverable. An unauthorized
 
 ## 6. Implications for AVS Roadmap
 
-### Immediate (v0.3.6  now)
+### Immediate (v0.3.6 — now)
 - Receipt format for all action types, including payment actions
 - Agent identity with privilege levels
 - Tool manifest for registered execution surfaces
@@ -214,7 +214,7 @@ The stakes just got higher. A denied file delete is recoverable. An unauthorized
 - **Budget governance:** Per-agent, per-tool, per-merchant spending limits
 
 ### Long-term (HiveMind era)
-- **Multi-agent payment chains:** Agent A pays Agent B pays Agent C  all governed
+- **Multi-agent payment chains:** Agent A pays Agent B pays Agent C — all governed
 - **Cross-agent budget pools:** Shared budgets with individual accountability
 - **Insurance linkage:** Receipts linked to claims, prevented loss evidence
 
@@ -224,20 +224,20 @@ The stakes just got higher. A denied file delete is recoverable. An unauthorized
 
 | Question | x402/AP4M/ACP/AP2/TAP | AVS |
 |----------|----------------------|-----|
-| Can the agent payWARNING | YES | Not directly  AVS is payment-rail agnostic |
-| Should the agent actWARNING | Partially (spending limits only) | YES  full policy/risk/trust/approval evaluation |
-| Who is the agentWARNING | Credentialing (Verifiable Intent) | AgentIdentity with privilege, environment, trust |
-| What tool is being usedWARNING | Not tracked | ToolManifest with registration, policy binding |
-| What policy appliedWARNING | Spending policy only | Full policy engine (23+ rule types) |
-| What was decidedWARNING | Payment authorized/denied | ALLOW/DENY/REQUIRE_APPROVAL/QUARANTINE |
-| Can the decision be verifiedWARNING | Blockchain settlement | ASR-1 receipt with hash chain + signature |
-| Can tampering be detectedWARNING | Blockchain finality | Receipt hash verification + chain integrity |
-| What evidence remainsWARNING | Transaction hash | Full ASR-1 receipt with all governance context |
-| Is the action evidence portableWARNING | Blockchain-native | Exportable to SIEM, observability, compliance |
+| Can the agent pay? | YES | Not directly — AVS is payment-rail agnostic |
+| Should the agent act? | Partially (spending limits only) | YES — full policy/risk/trust/approval evaluation |
+| Who is the agent? | Credentialing (Verifiable Intent) | AgentIdentity with privilege, environment, trust |
+| What tool is being used? | Not tracked | ToolManifest with registration, policy binding |
+| What policy applied? | Spending policy only | Full policy engine (23+ rule types) |
+| What was decided? | Payment authorized/denied | ALLOW/DENY/REQUIRE_APPROVAL/QUARANTINE |
+| Can the decision be verified? | Blockchain settlement | ASR-1 receipt with hash chain + signature |
+| Can tampering be detected? | Blockchain finality | Receipt hash verification + chain integrity |
+| What evidence remains? | Transaction hash | Full ASR-1 receipt with all governance context |
+| Is the action evidence portable? | Blockchain-native | Exportable to SIEM, observability, compliance |
 
 ### The AVS Wedge
-Payment protocols answer: **"Can this agent spend money on this thingWARNING"**
-AVS answers: **"Should this agent be allowed to take this action at all, with what evidence, under what policy, and with what proofWARNING"**
+Payment protocols answer: **"Can this agent spend money on this thing?"**
+AVS answers: **"Should this agent be allowed to take this action at all, with what evidence, under what policy, and with what proof?"**
 
 When the action is a payment, AVS governs it. When the action is a file delete, AVS governs it. When the action is a deployment, AVS governs it. The payment protocol only handles the money movement part.
 
@@ -245,21 +245,21 @@ When the action is a payment, AVS governs it. When the action is a file delete, 
 
 ## 8. Key Quotes from the Research
 
-> "The agentic web cannot simply adopt optimistic web patterns; it requires a new class of state-aware middleware that explicitly manages the synchronization gap between milliseconds-latency inference and seconds-latency settlement."  x402 Security Paper
+> "The agentic web cannot simply adopt optimistic web patterns; it requires a new class of state-aware middleware that explicitly manages the synchronization gap between milliseconds-latency inference and seconds-latency settlement." — x402 Security Paper
 
-> "We're heading toward an economy where most transactions never involve a person at all  machines paying each other, constantly, for things too small to bother a human with."  Joe Lau, Alchemy co-founder
+> "We're heading toward an economy where most transactions never involve a person at all — machines paying each other, constantly, for things too small to bother a human with." — Joe Lau, Alchemy co-founder
 
-> "Launching with 30+ partners to bring this to life from day one. This isn't just more payments. It's a new operating model for commerce."  Mastercard
+> "Launching with 30+ partners to bring this to life from day one. This isn't just more payments. It's a new operating model for commerce." — Mastercard
 
-> "There will soon be more AI agents transacting than humans, and they need money that's built for the internet  programmable, always on, and global."  Brian Foster, Coinbase
+> "There will soon be more AI agents transacting than humans, and they need money that's built for the internet — programmable, always on, and global." — Brian Foster, Coinbase
 
-> "The internet was built for human interactions, but the infrastructure of the future must be built for autonomous ones."  Stephanie Cohen, Cloudflare CSO
+> "The internet was built for human interactions, but the infrastructure of the future must be built for autonomous ones." — Stephanie Cohen, Cloudflare CSO
 
 ---
 
 ## 9. Bottom Line
 
-The agentic payments market just exploded. Mastercard AP4M, AWS AgentCore, x402, AP2, ACP  all launched within 60 days. This validates that agents need financial infrastructure.
+The agentic payments market just exploded. Mastercard AP4M, AWS AgentCore, x402, AP2, ACP — all launched within 60 days. This validates that agents need financial infrastructure.
 
 But it also reveals a massive gap: **payment protocols handle money movement, not action governance.**
 
@@ -269,7 +269,7 @@ None of them prove that the action itself was justified, governed, and evidenced
 
 **The future stack is:**
 ```
-Model  Agent  AVS (govern)  Payment Protocol (pay)  Execution  ASR-1 Receipt (prove)
+Model → Agent → AVS (govern) → Payment Protocol (pay) → Execution → ASR-1 Receipt (prove)
 ```
 
 AVS sits between the agent and the payment. It governs before money moves. It proves after the decision. The payment protocols are downstream from AVS.

@@ -1,8 +1,8 @@
 """
-AVS Quickstart 03  LangChain Tool Adapter
+AVS Quickstart 03 — LangChain Tool Adapter
 
 Shows: wrap a LangChain tool with AVS governance.
-LangChain is optional  if not installed, prints instructions.
+LangChain is optional — if not installed, prints instructions.
 
 Install LangChain first:
     pip install -r requirements-langchain.txt
@@ -26,11 +26,11 @@ except ImportError:
 
 def main():
     print("=" * 60)
-    print("  AVS Quickstart 03  LangChain Tool Adapter")
+    print("  AVS Quickstart 03 — LangChain Tool Adapter")
     print("=" * 60)
 
     if not LANGCHAIN_AVAILABLE:
-        print("\n   LangChain is not installed.")
+        print("\n  ⚠ LangChain is not installed.")
         print("\n  To run this example:")
         print("    pip install -r requirements-langchain.txt")
         print("  or:")
@@ -38,7 +38,7 @@ def main():
         print("\n  Then re-run this script.")
         return 0
 
-    # LangChain IS available  proceed with demo
+    # LangChain IS available — proceed with demo
     from avs_gateway.core.policy_engine import PolicyEngine
     from avs_gateway.core.risk_engine import RiskEngine
     from avs_gateway.core.trust_memory import TrustMemory
@@ -69,6 +69,7 @@ def main():
         operation="GET",
     )
 
+    print("\n  Install note: if LangChain is missing, run: pip install langchain-core")
     print("\n[1] Calling governed_search.run('weather today')")
     result1 = governed_search._run("weather today")
     print(f"    Result   : {result1[:60]}...")

@@ -6,13 +6,15 @@ evaluating conditions with various operators, logical operators,
 dot-notation field access, priority ordering, and default behavior.
 """
 
-from pathlib import Path
 import json
 import os
 import tempfile
-
+from pathlib import Path
 
 import pytest
+
+# Repo-relative path to default policies (works on Windows and Linux)
+_POLICIES_YAML = str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
 
 from avs_gateway.models.action_request import ActionRequest, ActionType, create_action_request
 from avs_gateway.core.policy_engine import (
@@ -66,7 +68,7 @@ class TestLoadPolicies:
 
     def test_load_policies_yaml(self, engine):
         """Loading from default YAML policy file returns correct count."""
-        policies_path = str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+        policies_path = _POLICIES_YAML
         count = engine.load_policies(policies_path)
         assert count == 23
         assert len(engine.list_rules()) == 23
@@ -181,7 +183,7 @@ class TestEvaluateBasic:
     def test_evaluate_allow_file_read(self, engine, file_read_request):
         """A file read request matches the allow rule and returns ALLOW."""
         engine.load_policies(
-            str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+            _POLICIES_YAML
         )
         result = engine.evaluate(file_read_request)
         assert result.matched is True
@@ -191,7 +193,7 @@ class TestEvaluateBasic:
     def test_evaluate_deny_file_delete(self, engine, file_delete_request):
         """A file delete request matches the deny rule and returns DENY."""
         engine.load_policies(
-            str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+            _POLICIES_YAML
         )
         result = engine.evaluate(file_delete_request)
         assert result.matched is True
@@ -209,7 +211,7 @@ class TestEvaluateOperators:
     def test_evaluate_amount_threshold_lte(self, engine):
         """Payment with amount <= 100 matches the small payment allow rule."""
         engine.load_policies(
-            str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+            _POLICIES_YAML
         )
         request = create_action_request(
             agent_id="agent-001",
@@ -226,7 +228,7 @@ class TestEvaluateOperators:
     def test_evaluate_amount_threshold_gt_and_lte(self, engine):
         """Payment with amount 500 matches the medium payment approval rule."""
         engine.load_policies(
-            str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+            _POLICIES_YAML
         )
         request = create_action_request(
             agent_id="agent-001",
@@ -568,7 +570,7 @@ class TestEvaluateNestedAndDefaults:
     def test_evaluate_nested_field_dot_notation(self, engine):
         """Dot notation (parameters.amount) accesses nested dict fields."""
         engine.load_policies(
-            str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
+            _POLICIES_YAML
         )
         request = create_action_request(
             agent_id="agent-001",

@@ -1,0 +1,83 @@
+# AVS MCP Guard — Dev Policy
+# For local demos and development.
+# Permissive: allows most operations, gates only dangerous ones.
+
+name: mcp_dev
+version: "0.4.0"
+description: "Developer-friendly MCP tool-call admission policy for local demos. Permissive but safe."
+
+global:
+  default_decision: allow
+  mode: soft_gate
+  sampling:
+    decision: deny
+    reason: "MCP sampling blocked even in dev mode."
+  unknown_tools:
+    decision: quarantine
+  manifest_drift:
+    decision: quarantine
+  schema_validation_failure:
+    decision: deny
+  shadow_tool:
+    decision: deny
+
+action_classes:
+  read_only:
+    decision: allow
+
+  filesystem_read:
+    decision: allow
+    path_constraints:
+      - deny_parent_traversal: true
+      - deny_absolute: true
+
+  filesystem_write:
+    decision: require_approval
+
+  destructive:
+    decision: deny
+
+  network:
+    decision: quarantine_if_private
+    deny_private_ip: true
+    deny_cloud_metadata: true
+
+  database_read:
+    decision: allow
+
+  database_write:
+    decision: require_approval
+
+  message_send:
+    decision: require_approval
+
+  code_execution:
+    decision: deny
+
+  credential_access:
+    decision: deny
+
+  payment_trigger:
+    decision: require_approval
+
+  deployment:
+    decision: require_approval
+
+  unknown:
+    decision: quarantine
+
+session:
+  exfiltration_guard:
+    enabled: true
+    trigger_tags:
+      - "SENSITIVE_DATA_ACCESSED"
+    upgrade_to: require_approval
+    applies_to_action_classes:
+      - network
+      - message_send
+
+receipt:
+  include_manifest_version: true
+  include_schema_validation: true
+  include_session_tags: true
+  include_server_fingerprint: true
