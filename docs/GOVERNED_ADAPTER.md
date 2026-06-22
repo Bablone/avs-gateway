@@ -77,7 +77,7 @@ def my_tool(...):
 ```python
 result = my_tool(...)
 
-result.executed        # bool: did the function actually run?
+result.executed        # bool: did the function actually runWARNING
 result.decision        # str: "allow", "deny", "require_approval", "quarantine"
 result.reason          # str: human-readable explanation
 result.risk_score      # int: 0-100

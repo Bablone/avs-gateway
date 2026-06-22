@@ -2,8 +2,27 @@
 
 > **Every agent action gets a receipt.**
 
-**AVS is to agent actions what OAuth is to user logins:** the permission layer that
-decides what executes and proves what happened.
+AVS Gateway is a runtime permission layer for AI agents. It enables proof-gated
+action: agents can act, but only when policy, risk, trust, identity, and
+evidence checks justify execution. Payment rails like Mastercard AP4M and x402
+handle money movement. AVS governs whether the action itself — file access, API
+calls, deployments, database queries, emails, or payments — should be allowed.
+Every decision creates a verifiable ASR-1 receipt.
+
+---
+
+## What Is Proof-Gated Action?
+
+Proof-gated action is the middle path between unsafe autonomy and passivity.
+
+| Mode | Description | Risk |
+|------|-------------|------|
+| **Unsafe Autonomy** | Agents act without sufficient evidence | Damage, runaway decisions |
+| **Passivity** | Blocking all automation because risk is too high | Missed opportunities, stagnation |
+| **Proof-Gated Action** | Agents act only when explicit checks pass | Safe, auditable action |
+
+In AVS, those checks include policy, risk score, trust score, approval status,
+agent identity, tool manifest registration, and ASR-1 receipt generation.
 
 ---
 
@@ -36,7 +55,7 @@ avs demo
 You will see:
 
 ```
-AVS Gateway v0.3.5 — Runtime Permission Layer
+AVS Gateway v0.3.6 — Runtime Permission Layer
 ================================================
 
 [ALLOW]   Safe file read → executed, receipt generated
@@ -194,8 +213,12 @@ Agent proposes action
 
 Every action — file, API, database, deployment, custom business logic — flows
 through the same pipeline. The Gateway does not care what the action is. It
-cares whether the action should be allowed, based on policy, risk, trust, and
-human approval.
+cares whether the action should be allowed, based on policy, risk, trust,
+identity, and evidence.
+
+> **Analogy:** AVS is like a Kubernetes admission controller for autonomous
+> systems: it intercepts agent intent before state mutation, validates identity,
+> policy, and risk, then admits, denies, or escalates before execution.
 
 ---
 
@@ -274,11 +297,20 @@ v0.3.4  Developer Release Foundation
         ├── Apache 2.0 license
         └── CI (GitHub Actions)
 
-v0.3.5  Public Launch Readiness Pack  ← CURRENT
+v0.3.5  Public Launch Readiness Pack
         ├── README polish, launch assets
         ├── Show HN post, outreach templates
         ├── FAQ, competitive positioning
-        └── 470 tests, zero failures
+        └── Standing watch template
+
+v0.3.6  ASR-1 Receipt Standard + Agent Identity Draft  ← CURRENT
+        ├── ASR-1 draft receipt format (portable, verifiable)
+        ├── AgentIdentity model (accountable principals)
+        ├── ToolManifest registration (execution surfaces)
+        ├── Receipt signing + verification CLI
+        ├── Tamper-evident linked hash chain
+        ├── 581 tests, zero failures
+        └── docs/ASR_1_RECEIPT_STANDARD.md
 ```
 
 ---
@@ -301,9 +333,9 @@ ActionRequest(
 )
 ```
 
-The Gateway evaluates policy, risk, and trust. It returns a decision.
-**It does not care what the tool does.** It cares whether the action should
-be allowed.
+The Gateway evaluates policy, risk, trust, identity, and tool manifest
+registration. It returns a decision. **It does not care what the tool does.**
+It cares whether the action should be allowed.
 
 ### The Physics (Sandboxes)
 
@@ -326,32 +358,23 @@ organizations to govern their own.**
 ## Roadmap
 
 ```
-v0.3.5  Public Launch Readiness Pack        ← CURRENT
-        README polish, launch assets,
-        Show HN post, outreach templates,
-        FAQ, competitive positioning
+v0.3.6  ASR-1 Receipt Standard + Agent Identity Draft  ← CURRENT
+        ASR-1 draft receipt format, AgentIdentity model,
+        ToolManifest registration, receipt signing + verification CLI,
+        tamper-evident linked hash chain, 581 tests
 
-v0.3.6  Dashboard Mission Control
-        Unified event view across all adapters
-        Approval queue for LangChain/custom actions
-        Real-time timeline
-
-v0.4.0  Design Partner Staging
-        First real company, real workflow
-        Pilot report + testimonial
-
-v0.4.1  Production Connectors
-        Slack, Stripe (test mode), database examples
-
-v0.5.0  Enterprise Hardening
-        Auth, RBAC, multi-tenancy
-        Compliance export (SOC 2, HIPAA)
-        Policy packs
-        SIEM integrations
+v0.4.0  Verifiable Identity Runtime (signed agent actions)
+v0.4.1  Tool Manifest Integrity (tamper detection)
+v0.4.2  Audit Export (CSV/JSON/CloudEvents/OpenTelemetry)
+v0.5.0  Enterprise Control Room (dashboard, RBAC, policy packs)
 ```
 
 Enterprise features will be proprietary/commercial add-ons. The open-source
 core remains free under Apache 2.0.
+
+**Status:** Alpha. AVS is production-grade code (581 tests, zero failures)
+but the API and receipt format may change as we learn from real deployments.
+We recommend starting with non-critical workflows.
 
 ---
 

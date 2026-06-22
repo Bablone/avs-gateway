@@ -21,13 +21,13 @@ Code-level tamper detection in Python is a "best effort" feature, not a security
 
 ---
 
-## Q1: Function Body Hashing in Python -- What Actually Works?
+## Q1: Function Body Hashing in Python -- What Actually WorksWARNING
 
 ### 1.1 `inspect.getsource()` -- Failure Modes
 
 `inspect.getsource()` retrieves the source code of a Python object by reading the original `.py` file. It works for most module-level functions but has **significant failure modes**:
 
-| Scenario | Result | Detects Tampering? |
+| Scenario | Result | Detects TamperingWARNING |
 |---|---|---|
 | Module-level function | **Works** | Only if source file changed |
 | `@functools.wraps` decorator | **Works** (follows `__wrapped__`) | No -- sees original, not wrapper |

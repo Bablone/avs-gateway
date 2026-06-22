@@ -1,0 +1,50 @@
+{
+  "asr_version": "1.0-draft",
+  "receipt_id": "1be15891-9d3b-4038-a4ee-8dd1a5c64f1c",
+  "request_id": "d76235a9-6dc1-4d39-b577-b339790f1f16",
+  "timestamp_ns": 1781969882064291239,
+  "agent_identity": {
+    "agent_id": "unknown_agent_999",
+    "agent_type": "",
+    "environment": "",
+    "privilege_level": "",
+    "public_key_fingerprint": null
+  },
+  "action": {
+    "action_type": "api",
+    "tool_name": "database_query",
+    "operation": "SELECT",
+    "parameter_hash": "sha256:2eba0a2bd42613dfe81b58f1aec306dffba4fe1d89cf8f8f80a92f7031bb1164",
+    "context_hash": "sha256:4f7174e45388c552e8ffce8c1025d1fe350a0cf5603262f51db18536d611a313"
+  },
+  "tool_manifest": {
+    "tool_name": null,
+    "module_path": null,
+    "function_name": null,
+    "source_hash": null,
+    "registered_at": null,
+    "registered_by": null,
+    "policy_binding": null
+  },
+  "governance": {
+    "policy_ids_evaluated": [
+      "rule_data_exfil"
+    ],
+    "winning_policy_id": "rule_data_exfil",
+    "risk_score": 88.0,
+    "trust_score": 15.0,
+    "decision": "quarantine",
+    "decision_reason": "Suspicious query pattern detected"
+  },
+  "execution": {
+    "executed": false,
+    "status": "quarantined",
+    "latency_ms": 0.0,
+    "human_approver_id": null
+  },
+  "ledger": {
+    "previous_receipt_hash": "sha256:38d87889c58b8e6cc36b0b93c5399640e97cdcf57cb13779b6687b699a1583f9",
+    "receipt_hash": "sha256:f4043a5b0c6bd31965131ce3c1b0b64d2c1ab45aa4f93001b798029e7b770e82",
+    "gateway_signature": "ed25519:FquHpZco5DANACTPxUenfURyZRA0IfH8qyaBPJsFBD0nqhlUpOU5IgfVAkhFZv9RwXpUzBF7lPoc9aWxlTl9Bw=="
+  }
+}

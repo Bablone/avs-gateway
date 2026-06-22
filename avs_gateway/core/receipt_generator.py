@@ -28,7 +28,7 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
-    logger.debug("cryptography library not available; using mock signing")
+    logger.warning("cryptography library not available; using mock signing")
 
 
 @dataclass(frozen=True)

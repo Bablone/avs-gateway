@@ -1,8 +1,8 @@
-# AVS Gateway v0.3.4 a Developer Release Foundation
+# AVS Gateway v0.3.4  Developer Release Foundation
 
 ## Overview
 
-v0.3.4 is the foundation release for developers. It contains the full permission layer, policy engine, risk scorer, trust model, cryptographic receipts, CLI, and framework adapters a stable enough to evaluate, early enough to shape.
+v0.3.4 is the foundation release for developers. It contains the full permission layer, policy engine, risk scorer, trust model, cryptographic receipts, CLI, and framework adapters  stable enough to evaluate, early enough to shape.
 
 **Status:** Alpha. Seeking design partners running real agent workloads.
 
@@ -29,14 +29,14 @@ v0.3.4 is the foundation release for developers. It contains the full permission
 ## Version Tree
 
 ```
-v0.1.0 a Core interception layer, basic ALLOW/DENY decisions
-v0.1.5 a YAML policy engine, declarative rule definitions
-v0.2.0 a Risk scoring engine (4 dimensions)
-v0.2.5 a Ed25519 cryptographic receipts, SHA-256 audit chain
-v0.3.0 a Trust decay model, REQUIRE_APPROVAL / QUARANTINE decisions
-v0.3.2 a LangChain adapter (AVSGovernedTool)
-v0.3.3 a CLI (avs version, avs demo, avs policy validate)
-v0.3.4 a Full risk model (8 dimensions), 23+ rules, 470+ tests, fail-closed hardening
+v0.1.0   Core interception layer, basic ALLOW/DENY decisions
+v0.1.5   YAML policy engine, declarative rule definitions
+v0.2.0   Risk scoring engine (4 dimensions)
+v0.2.5   Ed25519 cryptographic receipts, SHA-256 audit chain
+v0.3.0   Trust decay model, REQUIRE_APPROVAL / QUARANTINE decisions
+v0.3.2   LangChain adapter (AVSGovernedTool)
+v0.3.3   CLI (avs version, avs demo, avs policy validate)
+v0.3.4   Full risk model (8 dimensions), 23+ rules, 470+ tests, fail-closed hardening
 ```
 
 ---
@@ -58,7 +58,7 @@ Requires Python 3.10+.
 ```bash
 pip install avs-gateway
 avs version
-# a AVS Gateway v0.3.4
+#  AVS Gateway v0.3.4
 ```
 
 ### 2. Run the demo
@@ -76,7 +76,7 @@ from avs_gateway import governed_tool
 
 @governed_tool(policy_rules="rules.yaml")
 def send_email(to: str, body: str):
-  ...
+    ...
 ```
 
 ### 4. Validate your policy
@@ -142,7 +142,7 @@ None. v0.3.4 is backward-compatible with all v0.3.x configurations. If you are u
 | v0.4.0 | July 2025 | CrewAI adapter, OpenAPI endpoint filtering, async support |
 | v0.5.0 | August 2025 | Policy hot-reload, receipt aggregation API, performance benchmarks |
 | v0.6.0 | September 2025 | Web dashboard (local), policy rule builder UI |
-| v1.0.0 | Q4 2025 | Production-stable API, managed service option, compliance-control mapping |
+| v1.0.0 | Q4 2025 | Production-stable API, managed service option, SOC 2 mapping |
 
 ---
 
@@ -150,17 +150,16 @@ None. v0.3.4 is backward-compatible with all v0.3.x configurations. If you are u
 
 - 470+ tests, zero failures
 - 4 quickstart examples
-- 100% local a no API keys, no cloud dependency
+- 100% local  no API keys, no cloud dependency
 - Apache 2.0 licensed
 
 ---
 
 ## Feedback
 
-Open an issue: https://github.com/avs-gateway/avs-gateway/issues 
+Open an issue: https://github.com/avs-gateway/avs-gateway/issues  
 Email: hello@avs-gateway.io
 
 ---
 
 *AVS is the execution governance layer between agent intent and real-world action. Every agent action gets a receipt.*
-

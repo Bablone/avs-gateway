@@ -1,0 +1,50 @@
+{
+  "asr_version": "1.0-draft",
+  "receipt_id": "a1454660-07fe-48b3-8e66-8b4801c13168",
+  "request_id": "e6e7a73f-e61b-4b63-be97-04a8fd2bd47e",
+  "timestamp_ns": 1781969882055469026,
+  "agent_identity": {
+    "agent_id": "deploy_agent_003",
+    "agent_type": "",
+    "environment": "",
+    "privilege_level": "",
+    "public_key_fingerprint": null
+  },
+  "action": {
+    "action_type": "api",
+    "tool_name": "deploy_to_production",
+    "operation": "deploy_prod",
+    "parameter_hash": "sha256:4e3eb2a21b67013fc38a1ad8eee3536031e3ca4f778e9824c7f117d25eae15a5",
+    "context_hash": "sha256:04463084f4b5a9dbd0e81513bf57cef2398751bc9ec58059d6110003b95844a0"
+  },
+  "tool_manifest": {
+    "tool_name": null,
+    "module_path": null,
+    "function_name": null,
+    "source_hash": null,
+    "registered_at": null,
+    "registered_by": null,
+    "policy_binding": null
+  },
+  "governance": {
+    "policy_ids_evaluated": [
+      "rule_prod_deploy"
+    ],
+    "winning_policy_id": "rule_prod_deploy",
+    "risk_score": 75.0,
+    "trust_score": 70.0,
+    "decision": "require_approval",
+    "decision_reason": "Production deployments require CISO approval"
+  },
+  "execution": {
+    "executed": false,
+    "status": "blocked_pending_approval",
+    "latency_ms": 0.0,
+    "human_approver_id": null
+  },
+  "ledger": {
+    "previous_receipt_hash": "sha256:c5fb39edf880b879d463713ab0f61074c64c3619795049000179dbb7402c1de9",
+    "receipt_hash": "sha256:38d87889c58b8e6cc36b0b93c5399640e97cdcf57cb13779b6687b699a1583f9",
+    "gateway_signature": "ed25519:9MkBWKmkTFv7m9yE9n67sxGPmCEKM2ae5YRqv6TjmB8cM2POjVb4lw2whVs5Z/AG7xIWg7NqiZ/aZwv4SQJ+Bw=="
+  }
+}

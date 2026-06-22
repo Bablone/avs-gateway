@@ -1,8 +1,8 @@
-## Demo Video Script AVS Gateway v0.3.4
+## Demo Video Script  AVS Gateway v0.3.4
 
-**Duration:** 35 seconds 
-**Format:** Terminal recording (asciinema or terminal GIF) 
-**Voice:** Calm, authoritative. No hype. 
+**Duration:** 35 seconds  
+**Format:** Terminal recording (asciinema or terminal GIF)  
+**Voice:** Calm, authoritative. No hype.  
 **Background:** Subtle ambient electronic, or silence. No music during narration.
 
 ---
@@ -33,11 +33,11 @@ $ avs demo
 [RECEIPT] sig: Ed25519:9f2a...b4e1, hash: SHA-256:a7c3...d2f8
 
 [CALL] delete_file("/etc/passwd")
-[DECISION] DENY violates rule: protected_path
+[DECISION] DENY  violates rule: protected_path
 [RECEIPT] sig: Ed25519:3c8b...e7d2, hash: SHA-256:f1e9...a4b3
 
 [CALL] send_email(to="ceo@company.com", body="You're fired")
-[DECISION] REQUIRE_APPROVAL risk_score: 0.87
+[DECISION] REQUIRE_APPROVAL  risk_score: 0.87
 [RECEIPT] sig: Ed25519:7d4f...c1a9, hash: SHA-256:8e2b...f5c7
 ```
 
@@ -54,7 +54,7 @@ from avs_gateway import governed_tool
 
 @governed_tool(policy_rules="rules.yaml")
 def delete_database(name: str):
-  ...
+    ...
 
 # Agent calls it. AVS decides. Receipt proves what happened.
 ```

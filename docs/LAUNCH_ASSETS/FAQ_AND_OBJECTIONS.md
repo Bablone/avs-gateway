@@ -1,8 +1,8 @@
-# AVS Gateway FAQ & Objections
+# AVS Gateway  FAQ & Objections
 
-> **Version:** 1.0.0 
-> **Status:** Launch-ready 
-> **Last updated:** 2025-01-22 
+> **Version:** 1.0.0  
+> **Status:** Launch-ready  
+> **Last updated:** 2025-01-22  
 > **Purpose:** Answer the questions users will actually ask. Honest, specific, no hand-waving.
 
 ---
@@ -21,25 +21,25 @@
 
 ### 1. What is AVS GatewayWARNING
 
-AVS Gateway is a runtime permission layer for AI agents. It intercepts agent actions tool calls, file writes, API requests, deployments before they execute, evaluates them against declarative policies, and returns one of four decisions: ALLOW, DENY, REQUIRE_APPROVAL, or QUARANTINE. Every decision produces a cryptographically signed receipt and an immutable audit entry.
+AVS Gateway is a runtime permission layer for AI agents. It intercepts agent actions  tool calls, file writes, API requests, deployments  before they execute, evaluates them against declarative policies, and returns one of four decisions: ALLOW, DENY, REQUIRE_APPROVAL, or QUARANTINE. Every decision produces a cryptographically signed receipt and an immutable audit entry.
 
 ```python
 from avs_gateway import governed_tool
 
 @governed_tool
 async def deploy_to_production(image: str):
-  # AVS intercepts this call, evaluates policy, returns a decision
-  # Only then does execution proceed
-  ...
+    # AVS intercepts this call, evaluates policy, returns a decision
+    # Only then does execution proceed
+    ...
 ```
 
 ### 2. How is this different from LangSmith / observability toolsWARNING
 
-LangSmith traces what your agent *did* after the fact. It answers "what happenedWARNING" AVS decides whether your agent *may* act before it happens. It answers "should this be allowedWARNING" You can use both: AVS for enforcement, LangSmith for tracing. They are complementary.
+LangSmith traces what your agent *did*  after the fact. It answers "what happenedWARNING" AVS decides whether your agent *may* act  before it happens. It answers "should this be allowedWARNING" You can use both: AVS for enforcement, LangSmith for tracing. They are complementary.
 
 ### 3. How is this different from Guardrails AIWARNING
 
-Guardrails AI validates outputs checking that LLM responses conform to structure, type, or content constraints. AVS validates actions checking whether a tool call, file access, or deployment should be permitted. Guardrails protects against bad outputs; AVS protects against bad actions. Both can be used together.
+Guardrails AI validates outputs  checking that LLM responses conform to structure, type, or content constraints. AVS validates actions  checking whether a tool call, file access, or deployment should be permitted. Guardrails protects against bad outputs; AVS protects against bad actions. Both can be used together.
 
 ### 4. How is this different from OPA / policy enginesWARNING
 
@@ -56,7 +56,7 @@ from langchain.tools import tool as lc_tool
 
 @lc_tool
 def delete_database():
-  ...
+    ...
 
 governed = AVSGovernedTool.wrap(delete_database)
 ```
@@ -86,9 +86,9 @@ The demo runs a local policy engine with sample rules and shows you four decisio
 
 ### 10. Where can I get helpWARNING
 
-- **GitHub Issues:** Bug reports and feature requests https://github.com/avs-gateway/avs/issues
-- **GitHub Discussions:** Questions, architecture help, show-and-tell https://github.com/avs-gateway/avs/discussions
-- **Discussions preferred for questions** Issues are for bugs and features only.
+- **GitHub Issues:** Bug reports and feature requests  https://github.com/avs-gateway/avs/issues
+- **GitHub Discussions:** Questions, architecture help, show-and-tell  https://github.com/avs-gateway/avs/discussions
+- **Discussions preferred for questions**  Issues are for bugs and features only.
 
 ---
 
@@ -108,7 +108,7 @@ Four outcomes, returned as a `Decision` object:
 ```python
 result = await governed_tool.call(args)
 if result.decision == Decision.DENY:
-  logger.warning(f"Blocked: {result.reason}")
+    logger.warning(f"Blocked: {result.reason}")
 ```
 
 ### 12. How does the policy engine workWARNING
@@ -117,43 +117,43 @@ Policies are declarative YAML files. The engine evaluates rules in priority orde
 
 ```yaml
 policies:
- - name: block_destructive_sql
-  priority: 1
-  match:
-   action_type: "database.write"
-  decision: DENY
-  reason: "Destructive writes require explicit approval"
+  - name: block_destructive_sql
+    priority: 1
+    match:
+      action_type: "database.write"
+    decision: DENY
+    reason: "Destructive writes require explicit approval"
 
- - name: allow_trusted_read
-  priority: 2
-  match:
-   action_type: "database.read"
-   risk_score: "< 0.3"
-   trust_score: "> 0.7"
-  decision: ALLOW
+  - name: allow_trusted_read
+    priority: 2
+    match:
+      action_type: "database.read"
+      risk_score: "< 0.3"
+      trust_score: "> 0.7"
+    decision: ALLOW
 ```
 
 Rules are evaluated top-down. Priority 1 is checked before priority 2. The first matching rule wins.
 
 ### 13. What are receiptsWARNING
 
-Every AVS decision produces a receipt: a JSON document containing the action details, the decision, the policy that triggered it, a timestamp, and an Ed25519 cryptographic signature. The signature is produced by a keypair generated on your machine AVS does not hold your keys.
+Every AVS decision produces a receipt: a JSON document containing the action details, the decision, the policy that triggered it, a timestamp, and an Ed25519 cryptographic signature. The signature is produced by a keypair generated on your machine  AVS does not hold your keys.
 
 ```json
 {
- "receipt_id": "rec_2025-01-22_001",
- "action": "filesystem.write",
- "target": "/etc/passwd",
- "decision": "DENY",
- "policy": "block_sensitive_files",
- "timestamp": "2025-01-22T14:30:00Z",
- "signature": "ed25519:abc123..."
+  "receipt_id": "rec_2025-01-22_001",
+  "action": "filesystem.write",
+  "target": "/etc/passwd",
+  "decision": "DENY",
+  "policy": "block_sensitive_files",
+  "timestamp": "2025-01-22T14:30:00Z",
+  "signature": "ed25519:abc123..."
 }
 ```
 
 ### 14. How does the audit chain workWARNING
 
-Each receipt's SHA-256 hash is included in the next receipt, forming a linked hash chain. If any receipt is altered, the chain breaks and tampering is detectable. The chain is append-only receipts are never deleted or modified in place. Store the chain in a write-once location (WORM storage, append-only log) for maximum integrity.
+Each receipt's SHA-256 hash is included in the next receipt, forming a linked hash chain. If any receipt is altered, the chain breaks and tampering is detectable. The chain is append-only  receipts are never deleted or modified in place. Store the chain in a write-once location (WORM storage, append-only log) for maximum integrity.
 
 ```
 Receipt 1: hash = SHA-256(receipt_1_data)
@@ -163,7 +163,7 @@ Receipt 3: hash = SHA-256(receipt_3_data + Receipt_2.hash)
 
 ### 15. What is fail-closed designWARNING
 
-If anything goes wrong policy file is corrupt, engine crashes, signature key unavailable AVS defaults to DENY. An agent action blocked due to an AVS error is inconvenient. An agent action allowed because of an AVS error could be catastrophic. Fail-closed means errors fail safe.
+If anything goes wrong  policy file is corrupt, engine crashes, signature key unavailable  AVS defaults to DENY. An agent action blocked due to an AVS error is inconvenient. An agent action allowed because of an AVS error could be catastrophic. Fail-closed means errors fail safe.
 
 ### 16. Can I add custom policiesWARNING
 
@@ -178,14 +178,14 @@ from avs_gateway.policies import register_policy
 
 @register_policy("my_custom_check")
 def check_business_hours(action, context):
-  if not is_business_hours():
-    return Decision.REQUIRE_APPROVAL
-  return None # Let other policies decide
+    if not is_business_hours():
+        return Decision.REQUIRE_APPROVAL
+    return None  # Let other policies decide
 ```
 
 ### 17. Does it slow down my agentWARNING
 
-The policy evaluation adds ~1-5ms per intercepted call for typical rulesets (our benchmarks with 23 rules). Receipt generation and signing add ~2-3ms. For most agent workflows where tool calls themselves take 100ms-seconds this is negligible. You can disable receipt generation in development if needed.
+The policy evaluation adds ~1-5ms per intercepted call for typical rulesets (our benchmarks with 23 rules). Receipt generation and signing add ~2-3ms. For most agent workflows  where tool calls themselves take 100ms-seconds  this is negligible. You can disable receipt generation in development if needed.
 
 ### 18. How do I test my policiesWARNING
 
@@ -203,13 +203,13 @@ Run the full test suite: `pytest tests/ -v` (470+ tests, all passing).
 
 ### 19. Can AVS be bypassedWARNING
 
-Not if properly integrated. The `@governed_tool` decorator wraps the function at the Python level calling the function without going through the wrapper requires intentional code modification. For LangChain, `AVSGovernedTool` replaces the tool in the agent's tool list. If an agent has a path to execute actions outside governed tools, that is a deployment issue, not an AVS issue. Defense in depth matters.
+Not if properly integrated. The `@governed_tool` decorator wraps the function at the Python level  calling the function without going through the wrapper requires intentional code modification. For LangChain, `AVSGovernedTool` replaces the tool in the agent's tool list. If an agent has a path to execute actions outside governed tools, that is a deployment issue, not an AVS issue. Defense in depth matters.
 
 ### 20. What about async / concurrent agentsWARNING
 
 AVS is fully async-native (`async/await`). Each call is evaluated independently, so concurrent agents do not block each other. Receipts are written with atomic operations to prevent corruption under concurrency. Shared state (trust scores, policy caches) uses thread-safe/async-safe data structures.
 
-**Current state:** Async and concurrent execution are fully supported. 
+**Current state:** Async and concurrent execution are fully supported.  
 **On the roadmap:** Distributed policy enforcement across multiple agent nodes (for multi-agent swarms).
 
 ---
@@ -226,25 +226,25 @@ Run AVS in `REQUIRE_APPROVAL` mode first. This means AVS flags risky actions but
 
 You can, and many do. The question is whether you want to maintain that code.
 
-A typical DIY permission layer starts with `if action == "delete": raise PermissionError()`. Then you need risk scoring, then policy files, then audit logging, then you need tamper-evident logs, then you need to handle edge cases... We've done that work. AVS gives you 23+ built-in policy types, 8-dimension risk scoring, cryptographic receipts, and an audit chain all tested, documented, and maintained as a community project.
+A typical DIY permission layer starts with `if action == "delete": raise PermissionError()`. Then you need risk scoring, then policy files, then audit logging, then you need tamper-evident logs, then you need to handle edge cases... We've done that work. AVS gives you 23+ built-in policy types, 8-dimension risk scoring, cryptographic receipts, and an audit chain  all tested, documented, and maintained as a community project.
 
 If your needs are simple, DIY may be fine. If you're building multiple agents or want an audit trail, AVS saves weeks of work.
 
 ### 23. "Another dependency to maintain."
 
-AVS has zero runtime dependencies beyond Python standard library + PyYAML. No cloud services, no API keys, no subscription. If we disappeared tomorrow, your installed version keeps working. The codebase is ~3,000 lines of Python small enough to fork and maintain yourself if needed.
+AVS has zero runtime dependencies beyond Python standard library + PyYAML. No cloud services, no API keys, no subscription. If we disappeared tomorrow, your installed version keeps working. The codebase is ~3,000 lines of Python  small enough to fork and maintain yourself if needed.
 
 ### 24. "My agents are internal-only, I don't need this."
 
-Internal agents often have the broadest access they read from production databases, write to shared drives, and deploy to internal services. The "internal-only" assumption is exactly why most agent incidents happen inside the firewall. AVS is particularly valuable for internal agents because they touch sensitive systems by design.
+Internal agents often have the broadest access  they read from production databases, write to shared drives, and deploy to internal services. The "internal-only" assumption is exactly why most agent incidents happen inside the firewall. AVS is particularly valuable for internal agents because they touch sensitive systems by design.
 
 ### 25. "This adds complexity I don't have time for."
 
-Adding `@governed_tool` to a function takes 30 seconds. The `REQUIRE_APPROVAL` mode means AVS asks before risky actions it does not change how your agent works, it adds a safety check. Start with one tool, one policy. Complexity scales with your needs, not the other way around.
+Adding `@governed_tool` to a function takes 30 seconds. The `REQUIRE_APPROVAL` mode means AVS asks before risky actions  it does not change how your agent works, it adds a safety check. Start with one tool, one policy. Complexity scales with your needs, not the other way around.
 
 ### 26. "LangChain / Anthropic will build this into their framework."
 
-Maybe. Frameworks tend to add safety features over time. But framework-agnostic permission layers have value regardless: you may switch frameworks, use multiple frameworks, or build custom agents. AVS works with LangChain today, but does not depend on it. If LangChain adds native permissions, you can use both or migrate. We're not betting against frameworks; we're building something that works across all of them.
+Maybe. Frameworks tend to add safety features over time. But framework-agnostic permission layers have value regardless: you may switch frameworks, use multiple frameworks, or build custom agents. AVS works with LangChain today, but does not depend on it. If LangChain adds native permissions, you can use both  or migrate. We're not betting against frameworks; we're building something that works across all of them.
 
 ### 27. "I already have OPA / authorization. Why do I need AVSWARNING"
 
@@ -261,11 +261,11 @@ from avs_gateway.receipts import verify_receipt
 assert verify_receipt(receipt, public_key) is True
 ```
 
-The Ed25519 signatures use standard cryptography (libsodium). The linked hash chain is the same mechanism used in certificate transparency logs and blockchain structures. The code is open source audit it, run the tests, verify the math.
+The Ed25519 signatures use standard cryptography (libsodium). The linked hash chain is the same mechanism used in certificate transparency logs and blockchain structures. The code is open source  audit it, run the tests, verify the math.
 
 ### 29. "What if AVS has a bug and blocks legitimate actionsWARNING"
 
-Two safeguards: (1) Per-policy bypass you can disable individual policies without shutting AVS down. (2) Emergency bypass set `AVS_MODE=permissive` to log-but-not-block, allowing all actions through while keeping the audit trail. Both are documented in `docs/EMERGENCY_PROCEDURES.md`.
+Two safeguards: (1) Per-policy bypass  you can disable individual policies without shutting AVS down. (2) Emergency bypass  set `AVS_MODE=permissive` to log-but-not-block, allowing all actions through while keeping the audit trail. Both are documented in `docs/EMERGENCY_PROCEDURES.md`.
 
 ```bash
 # Emergency: log but do not block
@@ -293,7 +293,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 | **Framework support** | Any Python function / any framework | LangChain-focused |
 | **Self-hosted** | Yes, fully local | Cloud service (self-hosted available in enterprise) |
 | **Best for** | Enforcing permission boundaries on agent actions | Debugging and monitoring LLM application performance |
-| **Can use togetherWARNING** | Yes AVS for enforcement, LangSmith for tracing | Yes complementary |
+| **Can use togetherWARNING** | Yes  AVS for enforcement, LangSmith for tracing | Yes  complementary |
 
 ### AVS vs. Guardrails AI
 
@@ -305,7 +305,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 | **Decisions** | ALLOW, DENY, REQUIRE_APPROVAL, QUARANTINE | Pass / Fail / Retry |
 | **Focus** | Action permission | Output quality |
 | **Best for** | Stopping dangerous agent actions | Ensuring LLM responses are well-formed |
-| **Can use togetherWARNING** | Yes AVS for actions, Guardrails for outputs | Yes complementary |
+| **Can use togetherWARNING** | Yes  AVS for actions, Guardrails for outputs | Yes  complementary |
 
 ### AVS vs. OPA (Open Policy Agent)
 
@@ -317,7 +317,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 | **Receipts / audit** | Built-in Ed25519-signed receipts | Generic decision logs |
 | **Deployment** | Python library, pip install | Sidecar / service |
 | **Best for** | Agent permission with audit trails | General microservice authorization |
-| **Can use togetherWARNING** | Yes OPA as a policy backend for AVS | Yes AVS can call OPA for evaluation |
+| **Can use togetherWARNING** | Yes  OPA as a policy backend for AVS | Yes  AVS can call OPA for evaluation |
 
 ### AVS vs. Lakera
 
@@ -328,7 +328,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 | **Deployment** | Self-hosted, open source | Cloud API service |
 | **Receipts** | Cryptographically signed, local | Cloud-dashboard based |
 | **Best for** | Controlling what agents can *do* | Protecting against prompt attacks and data leakage |
-| **Can use togetherWARNING** | Yes Lakera for input security, AVS for action control | Yes layers of defense |
+| **Can use togetherWARNING** | Yes  Lakera for input security, AVS for action control | Yes  layers of defense |
 
 ### AVS vs. E2B
 
@@ -339,7 +339,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 | **Threat model** | Prevent bad actions from executing | Contain damage from any action |
 | **Deployment** | Library integrated with agent code | Cloud sandbox service |
 | **Best for** | Fine-grained permission control per action | Running untrusted code safely |
-| **Can use togetherWARNING** | Yes AVS decides, E2B contains | Yes defense in depth |
+| **Can use togetherWARNING** | Yes  AVS decides, E2B contains | Yes  defense in depth |
 
 ---
 
@@ -347,7 +347,7 @@ AVS Gateway is an open-source project started by engineers who build production 
 
 ### 31. What does being a design partner meanWARNING
 
-You use AVS with your agents, give us honest feedback on what works and what doesn't, and help shape the roadmap. You're not a customer you're a collaborator. We build what you actually need, not what we think you need.
+You use AVS with your agents, give us honest feedback on what works and what doesn't, and help shape the roadmap. You're not a customer  you're a collaborator. We build what you actually need, not what we think you need.
 
 ### 32. What's the time commitmentWARNING
 
@@ -370,7 +370,7 @@ You use AVS with your agents, give us honest feedback on what works and what doe
 
 ### 35. Is there a costWARNING
 
-No. AVS is Apache 2.0 free for everyone. Design partnership is free. There is no paid tier, no enterprise license, no upsell. We're building an open-source project, not a sales funnel.
+No. AVS is Apache 2.0  free for everyone. Design partnership is free. There is no paid tier, no enterprise license, no upsell. We're building an open-source project, not a sales funnel.
 
 ---
 

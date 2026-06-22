@@ -15,7 +15,7 @@ import os
 import subprocess
 
 # Package version
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 def _get_repo_root() -> str:
@@ -161,13 +161,74 @@ def cmd_quickstart(_args):
 
     for filename, description in examples:
         path = os.path.join(examples_dir, filename)
-        status = "✓" if os.path.isfile(path) else "✗"
-        print(f"  {status} {filename:30s} — {description}")
+        status = "OK" if os.path.isfile(path) else "MISSING"
+        print(f"  [{status}] {filename:30s} — {description}")
 
     print()
     print("Run any example:")
     print(f"  cd {root}")
     print("  python examples/quickstart/01_gateway_basics.py")
+
+
+def cmd_receipt_verify(args):
+    """Verify an ASR-1 receipt from a JSON file.
+
+    Usage: avs receipt verify <path_to_receipt.json>
+    """
+    if not args:
+        print("Usage: avs receipt verify <path_to_receipt.json>")
+        sys.exit(1)
+
+    filepath = args[0]
+    if not os.path.isfile(filepath):
+        print(f"File not found: {filepath}")
+        sys.exit(1)
+
+    try:
+        from avs_gateway.receipts.asr1 import ASR1Receipt, verify_receipt
+    except ImportError as exc:
+        print(f"Error: Cannot load ASR-1 module: {exc}")
+        sys.exit(1)
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            receipt = ASR1Receipt.from_json(f.read())
+    except Exception as exc:
+        print(f"ASR-1 receipt: invalid")
+        print(f"Reason: Cannot parse JSON: {exc}")
+        sys.exit(1)
+
+    valid = verify_receipt(receipt)
+
+    if valid:
+        print("ASR-1 receipt: valid")
+        print(f"  receipt_id : {receipt.receipt_id}")
+        print(f"  decision   : {receipt.decision}")
+        print(f"  agent_id   : {receipt.agent_id}")
+        print(f"  receipt_hash: {receipt.receipt_hash}")
+        sys.exit(0)
+    else:
+        print("ASR-1 receipt: invalid")
+        print("  Reason: receipt_hash mismatch or tampering detected")
+        sys.exit(1)
+
+
+def cmd_receipt(args):
+    """ASR-1 receipt commands."""
+    if len(args) < 1:
+        print("Usage: avs receipt <subcommand>")
+        print("  avs receipt verify <path_to_receipt.json>")
+        sys.exit(1)
+
+    subcommand = args[0]
+    subargs = args[1:]
+
+    if subcommand == "verify":
+        cmd_receipt_verify(subargs)
+    else:
+        print(f"Unknown receipt subcommand: {subcommand}")
+        print("  verify  — Verify an ASR-1 receipt")
+        sys.exit(1)
 
 
 def main():
@@ -182,12 +243,14 @@ def main():
         print("  version     Show AVS version")
         print("  demo        Run 30-second governance demo")
         print("  quickstart  List available quickstart examples")
+        print("  receipt     ASR-1 receipt commands (verify)")
         print()
         print("Install:")
         print("  pip install -e .")
         print()
         print("Quick start:")
         print("  avs demo")
+        print("  avs receipt verify examples/receipts/allow_receipt.json")
         sys.exit(0)
 
     command = sys.argv[1]
@@ -197,6 +260,7 @@ def main():
         "version": cmd_version,
         "demo": cmd_demo,
         "quickstart": cmd_quickstart,
+        "receipt": cmd_receipt,
     }
 
     func = commands.get(command)

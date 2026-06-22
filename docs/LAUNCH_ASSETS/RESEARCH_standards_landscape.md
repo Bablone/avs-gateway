@@ -297,7 +297,7 @@ SPIFFE should be the recommended identity standard for agents in the ASR-1 ecosy
 
 - SPIFFE Specification: https://spiffe.io/docs/latest/spiffe-about/overview/
 - CyberArk AI Agent SPIFFE Auth: https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/authn/authenticate-ai-spiffe.htm
-- Solo.io "Can SPIFFE Work for Agents?": https://www.solo.io/blog/agent-identity-and-access-management-can-spiffe-work
+- Solo.io "Can SPIFFE Work for AgentsWARNING": https://www.solo.io/blog/agent-identity-and-access-management-can-spiffe-work
 - HashiCorp SPIFFE for Agentic AI: https://www.hashicorp.com/en/blog/spiffe-securing-the-identity-of-agentic-ai-and-non-human-actors
 - Sakura Sky Agent Identity & Attestation: https://www.sakurasky.com/blog/missing-primitives-for-trustworthy-ai-part-3/
 - Riptides SPIFFE for AI Agents: https://riptides.io/blog/how-to-deliver-spiffe-identity-to-ai-agents/

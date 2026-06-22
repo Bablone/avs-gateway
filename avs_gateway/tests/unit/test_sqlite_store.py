@@ -33,7 +33,6 @@ def _remove_db_file_safely(path: str) -> None:
             gc.collect()
             time.sleep(0.05)
 
-    # Final attempt lets pytest show the real error if still locked.
     if os.path.exists(path):
         os.remove(path)
 

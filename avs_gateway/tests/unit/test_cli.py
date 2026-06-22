@@ -122,3 +122,64 @@ class TestMainEntryPoint:
         assert hasattr(cli_module, "cmd_version")
         assert hasattr(cli_module, "cmd_demo")
         assert hasattr(cli_module, "cmd_quickstart")
+
+
+class TestCLIReceiptVerify:
+    """avs receipt verify command."""
+
+    def test_receipt_verify_valid_allow(self, capsys):
+        """avs receipt verify accepts a valid ALLOW receipt."""
+        from avs_gateway.cli import cmd_receipt_verify
+        receipt_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "examples", "receipts", "allow_receipt.json"
+        )
+        if os.path.isfile(receipt_path):
+            try:
+                cmd_receipt_verify([receipt_path])
+                captured = capsys.readouterr()
+                assert "valid" in captured.out.lower()
+            except SystemExit as exc:
+                assert exc.code == 0, f"Expected exit 0 for valid receipt, got {exc.code}"
+
+    def test_receipt_verify_valid_deny(self, capsys):
+        """avs receipt verify accepts a valid DENY receipt."""
+        from avs_gateway.cli import cmd_receipt_verify
+        receipt_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "examples", "receipts", "deny_receipt.json"
+        )
+        if os.path.isfile(receipt_path):
+            try:
+                cmd_receipt_verify([receipt_path])
+                captured = capsys.readouterr()
+                assert "valid" in captured.out.lower()
+            except SystemExit as exc:
+                assert exc.code == 0
+
+    def test_receipt_verify_invalid_file(self):
+        """avs receipt verify fails for nonexistent file."""
+        from avs_gateway.cli import cmd_receipt_verify
+        with pytest.raises(SystemExit) as exc_info:
+            cmd_receipt_verify(["/nonexistent/path/receipt.json"])
+        assert exc_info.value.code == 1
+
+    def test_receipt_verify_no_args(self):
+        """avs receipt verify without args prints usage."""
+        from avs_gateway.cli import cmd_receipt_verify
+        with pytest.raises(SystemExit) as exc_info:
+            cmd_receipt_verify([])
+        assert exc_info.value.code == 1
+
+    def test_receipt_subcommand_no_args(self, capsys):
+        """avs receipt without subcommand prints usage."""
+        from avs_gateway.cli import cmd_receipt
+        with pytest.raises(SystemExit) as exc_info:
+            cmd_receipt([])
+        assert exc_info.value.code == 1
+
+    def test_cli_has_receipt_command(self):
+        """CLI has receipt command registered."""
+        import avs_gateway.cli as cli_module
+        assert hasattr(cli_module, "cmd_receipt")
+        assert hasattr(cli_module, "cmd_receipt_verify")

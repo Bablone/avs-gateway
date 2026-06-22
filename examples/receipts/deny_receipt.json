@@ -1,0 +1,50 @@
+{
+  "asr_version": "1.0-draft",
+  "receipt_id": "f712b4dc-7833-46a6-8906-7cac8c40450d",
+  "request_id": "9871e787-fd71-4290-82ea-f853b7f39501",
+  "timestamp_ns": 1781969882046487660,
+  "agent_identity": {
+    "agent_id": "cleanup_agent_002",
+    "agent_type": "",
+    "environment": "",
+    "privilege_level": "",
+    "public_key_fingerprint": null
+  },
+  "action": {
+    "action_type": "file",
+    "tool_name": "file_delete",
+    "operation": "delete",
+    "parameter_hash": "sha256:8976783d93a2000a234cf7e87969f49d7e5e14cc8a99fec4d2d84fd82d393887",
+    "context_hash": "sha256:4f7174e45388c552e8ffce8c1025d1fe350a0cf5603262f51db18536d611a313"
+  },
+  "tool_manifest": {
+    "tool_name": null,
+    "module_path": null,
+    "function_name": null,
+    "source_hash": null,
+    "registered_at": null,
+    "registered_by": null,
+    "policy_binding": null
+  },
+  "governance": {
+    "policy_ids_evaluated": [
+      "rule_no_delete_system"
+    ],
+    "winning_policy_id": "rule_no_delete_system",
+    "risk_score": 95.0,
+    "trust_score": 40.0,
+    "decision": "deny",
+    "decision_reason": "File deletion outside sandbox is prohibited"
+  },
+  "execution": {
+    "executed": false,
+    "status": "blocked",
+    "latency_ms": 0.0,
+    "human_approver_id": null
+  },
+  "ledger": {
+    "previous_receipt_hash": "sha256:bd8ed423305008ed8febf567b83bcfe31a5afaa65c2f8fd7fc94b18ed08d1444",
+    "receipt_hash": "sha256:c5fb39edf880b879d463713ab0f61074c64c3619795049000179dbb7402c1de9",
+    "gateway_signature": "ed25519:QS8fSJsiDXVXfwVTvxJQ8ofml2I8mP244EgSjcKDDvNASpeUH9qgTXq7DO3ORdc6zMIFXQI+FdZOnq5BcVFgCg=="
+  }
+}

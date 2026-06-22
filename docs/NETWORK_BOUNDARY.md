@@ -20,16 +20,16 @@ Every HTTP request passes through 10 independent validation layers.
 **If any layer fails, the request is blocked.**
 
 ```
-Layer 1: Method validation        → Only GET allowed (configurable)
-Layer 2: Scheme validation        → Only http:// and https://
-Layer 3: Credential rejection     → No user:pass@ in URLs
-Layer 4: Domain allowlist         → Explicit permit required
-Layer 5: DNS + IP blocklist       → SSRF protection (RFC 1918, loopback, metadata)
-Layer 6: Header stripping         → Auth/cookie headers removed
-Layer 7: Redirect prevention      → allow_redirects=False
-Layer 8: Response size cap        → Stream terminated at 100KB
-Layer 9: Timeout enforcement      → 5-second ceiling
-Layer 10: Redirect status block   → 300-399 responses treated as attacks
+Layer 1: Method validation         Only GET allowed (configurable)
+Layer 2: Scheme validation         Only http:// and https://
+Layer 3: Credential rejection      No user:pass@ in URLs
+Layer 4: Domain allowlist          Explicit permit required
+Layer 5: DNS + IP blocklist        SSRF protection (RFC 1918, loopback, metadata)
+Layer 6: Header stripping          Auth/cookie headers removed
+Layer 7: Redirect prevention       allow_redirects=False
+Layer 8: Response size cap         Stream terminated at 100KB
+Layer 9: Timeout enforcement       5-second ceiling
+Layer 10: Redirect status block    300-399 responses treated as attacks
 ```
 
 ## Usage
@@ -166,5 +166,5 @@ python demo/network_boundary_demo.py
   attacker could flip the DNS record between validation and execution.
   Full protection requires custom TCP-level handling (future work).
 - **IPv6 literal URLs without brackets** (`https://::1/path`) are rejected
-  by URL parsing, not by the sandbox. This is acceptable — valid IPv6 URLs
+  by URL parsing, not by the sandbox. This is acceptable  valid IPv6 URLs
   must use brackets (`https://[::1]/path`).

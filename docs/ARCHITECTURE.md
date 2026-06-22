@@ -20,12 +20,12 @@ Every action, regardless of framework or tool type, becomes an
 
 ```
 ActionRequest
-├── agent_id          — who is acting
-├── action_type       — category (file, api, payment, deployment...)
-├── tool_name         — what tool
-├── operation         — what operation
-├── parameters        — inputs
-└── context           — environment, role, classification
+ agent_id           who is acting
+ action_type        category (file, api, payment, deployment...)
+ tool_name          what tool
+ operation          what operation
+ parameters         inputs
+ context            environment, role, classification
 ```
 
 The Gateway evaluates through four engines:
@@ -74,12 +74,12 @@ Agent proposes action
 +----------------------------+
 |  Framework Adapter Layer   |
 |                            |
-|  OpenClaw   → ActionRequest|
-|  @governed  → ActionRequest|
-|  LangChain  → ActionRequest|
-|  CrewAI     → ActionRequest|   (future)
-|  MCP        → ActionRequest|   (future)
-|  Custom     → ActionRequest|
+|  OpenClaw    ActionRequest|
+|  @governed   ActionRequest|
+|  LangChain   ActionRequest|
+|  CrewAI      ActionRequest|   (future)
+|  MCP         ActionRequest|   (future)
+|  Custom      ActionRequest|
 +-------------+--------------+
               |
               v
@@ -87,9 +87,9 @@ Agent proposes action
 |      AVS Gateway           |
 |                            |
 |  Policy  + Risk + Trust   |
-|            ↓               |
+|                           |
 |        Decision            |
-|            ↓               |
+|                           |
 |    Receipt + Audit         |
 +-------------+--------------+
               |
@@ -123,7 +123,7 @@ For standalone Python functions:
 ```python
 @governed_tool(tool_name="send_email", action_type=ActionType.EMAIL, operation="send")
 def send_email(to, subject, body):
-    # Original code — unchanged
+    # Original code  unchanged
     ...
 ```
 
@@ -142,7 +142,7 @@ The same pattern applies to any framework:
 
 | Framework | Adapter Status |
 |-----------|---------------|
-| LangChain | ✅ v0.3.3 |
+| LangChain |  v0.3.3 |
 | CrewAI | Planned |
 | AutoGen | Planned |
 | MCP (Model Context Protocol) | Planned |
@@ -156,20 +156,20 @@ Every decision produces a **Receipt**:
 
 ```python
 Receipt
-├── receipt_hash      — SHA-256 of the full decision record
-├── timestamp         — when the decision was made
-├── action_request    — what was requested
-├── decision          — allow / deny / approval / quarantine
-├── reason            — why the decision was made
-├── risk_score        — numerical risk assessment
-├── trust_score       — agent trust at decision time
-└── signature         — Ed25519 cryptographic signature
+ receipt_hash       SHA-256 of the full decision record
+ timestamp          when the decision was made
+ action_request     what was requested
+ decision           allow / deny / approval / quarantine
+ reason             why the decision was made
+ risk_score         numerical risk assessment
+ trust_score        agent trust at decision time
+ signature          Ed25519 cryptographic signature
 ```
 
 Receipts are:
-- **Cryptographically signed** — non-repudiable
-- **Immutable** — tamper-evident via hash chain
-- **Verifiable** — anyone can verify the signature
+- **Cryptographically signed**  non-repudiable
+- **Immutable**  tamper-evident via hash chain
+- **Verifiable**  anyone can verify the signature
 
 The **Audit Chain** is an append-only SHA-256 linked chain:
 
@@ -225,8 +225,8 @@ When an organization adds a new tool, AVS does not need to change:
 1. **Developer wraps the tool** with `@governed_tool` or an adapter
 2. **Action becomes an ActionRequest** automatically
 3. **Policy engine evaluates** the action type, operation, and context
-4. **Decision is enforced** — allow, deny, or require approval
-5. **Receipt is generated** — immutable evidence
+4. **Decision is enforced**  allow, deny, or require approval
+5. **Receipt is generated**  immutable evidence
 
 AVS does not need to "know" about deployment, trading, healthcare, or
 finance. It needs to know how to intercept, decide, and record evidence.
@@ -238,40 +238,40 @@ finance. It needs to know how to intercept, decide, and record evidence.
 
 ```
 avs_gateway/
-├── __init__.py              # Package exports
-├── cli.py                   # avs demo / version / quickstart
-├── adapters/
-│   ├── __init__.py
-│   ├── base_adapter.py      # Adapter interface
-│   ├── governed.py          # @governed_tool decorator
-│   ├── langchain_adapter.py # LangChain BaseTool wrapper
-│   └── openclaw_adapter.py  # OpenClaw bridge
-├── core/
-│   ├── gateway_core.py      # Central orchestrator
-│   ├── policy_engine.py     # Declarative rule engine
-│   ├── risk_engine.py       # Multi-dimension risk scoring
-│   ├── trust_memory.py      # Time-weighted trust decay
-│   ├── receipt_generator.py # Ed25519 receipt signing
-│   ├── audit_chain.py       # Immutable SHA-256 chain
-│   └── approval_service.py  # Human approval workflow
-├── models/
-│   └── action_request.py    # Universal action representation
-├── tools/
-│   ├── file_sandbox.py      # Filesystem physics (v0.3.0)
-│   ├── http_sandbox.py      # Network physics (v0.3.2)
-│   ├── real_tool_registry.py # Tool registration
-│   └── simulated_tools.py   # Mock tools for testing
-├── server/
-│   └── gateway_server.py    # FastAPI REST API
-├── storage/
-│   └── sqlite_store.py      # Persistent approval storage
-├── config/
-│   ├── default_policies.yaml
-│   ├── sandbox_policies.yaml
-│   └── network_policies.yaml
-└── tests/
-    ├── unit/
-    └── integration/
+ __init__.py              # Package exports
+ cli.py                   # avs demo / version / quickstart
+ adapters/
+    __init__.py
+    base_adapter.py      # Adapter interface
+    governed.py          # @governed_tool decorator
+    langchain_adapter.py # LangChain BaseTool wrapper
+    openclaw_adapter.py  # OpenClaw bridge
+ core/
+    gateway_core.py      # Central orchestrator
+    policy_engine.py     # Declarative rule engine
+    risk_engine.py       # Multi-dimension risk scoring
+    trust_memory.py      # Time-weighted trust decay
+    receipt_generator.py # Ed25519 receipt signing
+    audit_chain.py       # Immutable SHA-256 chain
+    approval_service.py  # Human approval workflow
+ models/
+    action_request.py    # Universal action representation
+ tools/
+    file_sandbox.py      # Filesystem physics (v0.3.0)
+    http_sandbox.py      # Network physics (v0.3.2)
+    real_tool_registry.py # Tool registration
+    simulated_tools.py   # Mock tools for testing
+ server/
+    gateway_server.py    # FastAPI REST API
+ storage/
+    sqlite_store.py      # Persistent approval storage
+ config/
+    default_policies.yaml
+    sandbox_policies.yaml
+    network_policies.yaml
+ tests/
+     unit/
+     integration/
 ```
 
 ---
@@ -288,7 +288,7 @@ avs_gateway/
    CrewAI, or any framework. Adapters handle translation.
 
 4. **Organization-extensible.** Custom tools, custom policies, custom
-   action types — all pass through the same pipeline.
+   action types  all pass through the same pipeline.
 
 5. **Local-first.** No cloud dependency. No external API keys. Works
    offline. Customer-controlled keys.
@@ -297,9 +297,9 @@ avs_gateway/
 
 ## Further Reading
 
-- [QUICKSTART.md](QUICKSTART.md) — Install and first steps
-- [README.md](../README.md) — Project overview and positioning
-- `docs/GOVERNED_ADAPTER.md` — @governed_tool usage guide
-- `docs/LANGCHAIN_ADAPTER.md` — LangChain integration guide
-- `docs/REAL_TOOL_SANDBOX.md` — Filesystem sandbox documentation
-- `docs/NETWORK_BOUNDARY.md` — Network sandbox documentation
+- [QUICKSTART.md](QUICKSTART.md)  Install and first steps
+- [README.md](../README.md)  Project overview and positioning
+- `docs/GOVERNED_ADAPTER.md`  @governed_tool usage guide
+- `docs/LANGCHAIN_ADAPTER.md`  LangChain integration guide
+- `docs/REAL_TOOL_SANDBOX.md`  Filesystem sandbox documentation
+- `docs/NETWORK_BOUNDARY.md`  Network sandbox documentation

@@ -1,9 +1,28 @@
-# AVS Gateway a Runtime Permission Layer for AI Agents
+# AVS Gateway  Runtime Permission Layer for AI Agents
 
 > **Every agent action gets a receipt.**
 
-**AVS is to agent actions what OAuth is to user logins:** the permission layer that
-decides what executes and proves what happened.
+AVS Gateway is a runtime permission layer for AI agents. It enables proof-gated
+action: agents can act, but only when policy, risk, trust, identity, and
+evidence checks justify execution. Payment rails like Mastercard AP4M and x402
+handle money movement. AVS governs whether the action itself  file access, API
+calls, deployments, database queries, emails, or payments  should be allowed.
+Every decision creates a verifiable ASR-1 receipt.
+
+---
+
+## What Is Proof-Gated ActionWARNING
+
+Proof-gated action is the middle path between unsafe autonomy and passivity.
+
+| Mode | Description | Risk |
+|------|-------------|------|
+| **Unsafe Autonomy** | Agents act without sufficient evidence | Damage, runaway decisions |
+| **Passivity** | Blocking all automation because risk is too high | Missed opportunities, stagnation |
+| **Proof-Gated Action** | Agents act only when explicit checks pass | Safe, auditable action |
+
+In AVS, those checks include policy, risk score, trust score, approval status,
+agent identity, tool manifest registration, and ASR-1 receipt generation.
 
 ---
 
@@ -36,12 +55,12 @@ avs demo
 You will see:
 
 ```
-AVS Gateway v0.3.5 a Runtime Permission Layer
+AVS Gateway v0.3.6  Runtime Permission Layer
 ================================================
 
-[ALLOW]  Safe file read a executed, receipt generated
-[DENY]  Dangerous delete a blocked, reason logged
-[PENDING] Production deploy a queued for human approval
+[ALLOW]   Safe file read  executed, receipt generated
+[DENY]    Dangerous delete  blocked, reason logged
+[PENDING] Production deploy  queued for human approval
 
 Every action produced a cryptographic receipt.
 No agent action executes without AVS deciding first.
@@ -51,7 +70,7 @@ No agent action executes without AVS deciding first.
 
 ## Quick Start (5 Minutes)
 
-### 1. Gateway basics a intercept any action
+### 1. Gateway basics  intercept any action
 
 ```bash
 python examples/quickstart/01_gateway_basics.py
@@ -64,22 +83,22 @@ from avs_gateway.models.action_request import create_action_request, ActionType
 gateway = Gateway()
 
 action = create_action_request(
-  agent_id="my_agent",
-  action_type=ActionType.FILE,
-  tool_name="file_delete",
-  operation="delete",
-  parameters={"path": "/etc/passwd"},
+    agent_id="my_agent",
+    action_type=ActionType.FILE,
+    tool_name="file_delete",
+    operation="delete",
+    parameters={"path": "/etc/passwd"},
 )
 
 decision = gateway.intercept(action)
-print(f"Decision: {decision.decision_type.value}")  # "deny"
-print(f"Reason:  {decision.reason}")         # "Policy denied"
+print(f"Decision: {decision.decision_type.value}")   # "deny"
+print(f"Reason:   {decision.reason}")                  # "Policy denied"
 
 receipt = gateway.record(action, decision)
-print(f"Receipt: {receipt.receipt_hash}")       # sha256...
+print(f"Receipt:  {receipt.receipt_hash}")             # sha256...
 ```
 
-### 2. Govern a Python function a one decorator
+### 2. Govern a Python function  one decorator
 
 ```bash
 python examples/quickstart/02_governed_tool.py
@@ -90,21 +109,21 @@ from avs_gateway.adapters.governed import governed_tool
 from avs_gateway.models.action_request import ActionType
 
 @governed_tool(
-  tool_name="send_email",
-  action_type=ActionType.EMAIL,
-  operation="send",
+    tool_name="send_email",
+    action_type=ActionType.EMAIL,
+    operation="send",
 )
 def send_email(to: str, subject: str, body: str) -> dict:
-  # Your original code a unchanged
-  smtp.send(to, subject, body)
-  return {"status": "sent"}
+    # Your original code  unchanged
+    smtp.send(to, subject, body)
+    return {"status": "sent"}
 
-# Call it normally a AVS intercepts automatically
+# Call it normally  AVS intercepts automatically
 result = send_email("user@example.com", "Hello", "World")
 # Returns: GovernedResult(decision="allow", receipt=..., ...)
 ```
 
-### 3. Govern a LangChain tool a wrap and go
+### 3. Govern a LangChain tool  wrap and go
 
 ```bash
 python examples/quickstart/03_langchain_tool.py
@@ -115,17 +134,17 @@ from avs_gateway.adapters.langchain_adapter import govern_langchain_tool
 from avs_gateway.models.action_request import ActionType
 
 governed_search = govern_langchain_tool(
-  tool=original_search_tool,
-  gateway=gateway,
-  action_type=ActionType.API,
-  operation="GET",
+    tool=original_search_tool,
+    gateway=gateway,
+    action_type=ActionType.API,
+    operation="GET",
 )
 
-# Pass to your LangChain agent a AVS controls execution
+# Pass to your LangChain agent  AVS controls execution
 agent = create_react_agent(llm, tools=[governed_search])
 ```
 
-### 4. Govern a custom business action a any action, any domain
+### 4. Govern a custom business action  any action, any domain
 
 ```bash
 python examples/quickstart/04_custom_action.py
@@ -133,16 +152,16 @@ python examples/quickstart/04_custom_action.py
 
 ```python
 @governed_tool(
-  tool_name="deploy_to_production",
-  action_type=ActionType.API,
-  operation="deploy_prod",
-  context={"environment": "production"},
+    tool_name="deploy_to_production",
+    action_type=ActionType.API,
+    operation="deploy_prod",
+    context={"environment": "production"},
 )
 def deploy_to_prod(manifest: str) -> str:
-  kubectl.apply(manifest)
-  return "Deployed"
+    kubectl.apply(manifest)
+    return "Deployed"
 
-# AVS returns REQUIRE_APPROVAL a tool does NOT execute
+# AVS returns REQUIRE_APPROVAL  tool does NOT execute
 # until a human approves it through the dashboard.
 ```
 
@@ -152,50 +171,54 @@ def deploy_to_prod(manifest: str) -> str:
 
 ```
 Agent proposes action
-    |
-    v
-+---------------------+   +------------------+
-| Framework Adapter |   | @governed_tool |
-| (LangChain, etc.) |   | (any function) |
-+----------+----------+   +--------+---------+
-      |              |
-      +------------+--------------+
-            |
-            v
-      +-----------------------+
-      |  ActionRequest     |
-      |  (tool, operation,   |
-      |  context, params)   |
-      +-----------+-----------+
-            |
-            v
-      +-----------------------+
-      |  AVS Gateway      |
-      |             |
-      | Policy Engine  ---- |
-      | Risk Engine   ---- |----> ALLOW
-      | Trust Memory   ---- |----> DENY
-      | Approval Service ---- |----> REQUIRE_APPROVAL
-      +-----------+-----------+   QUARANTINE
-            |
-            v
-      +-----------------------+
-      |  Decision Enforced   |
-      |  (execute or block)  |
-      +-----------+-----------+
-            |
-            v
-      +-----------------------+
-      |  Cryptographic Receipt |
-      |  Immutable Audit Chain |
-      |  Dashboard Timeline  |
-      +-----------------------+
+        |
+        v
++---------------------+     +------------------+
+|  Framework Adapter  |     |  @governed_tool  |
+|  (LangChain, etc.)  |     |  (any function)  |
++----------+----------+     +--------+---------+
+           |                           |
+           +------------+--------------+
+                        |
+                        v
+            +-----------------------+
+            |   ActionRequest         |
+            |   (tool, operation,     |
+            |    context, params)     |
+            +-----------+-----------+
+                        |
+                        v
+            +-----------------------+
+            |   AVS Gateway           |
+            |                         |
+            |  Policy Engine    ----  |
+            |  Risk Engine      ----  |----> ALLOW
+            |  Trust Memory     ----  |----> DENY
+            |  Approval Service ----  |----> REQUIRE_APPROVAL
+            +-----------+-----------+      QUARANTINE
+                        |
+                        v
+            +-----------------------+
+            |   Decision Enforced     |
+            |   (execute or block)    |
+            +-----------+-----------+
+                        |
+                        v
+            +-----------------------+
+            |   Cryptographic Receipt |
+            |   Immutable Audit Chain |
+            |   Dashboard Timeline    |
+            +-----------------------+
 ```
 
-Every action a file, API, database, deployment, custom business logic a flows
+Every action  file, API, database, deployment, custom business logic  flows
 through the same pipeline. The Gateway does not care what the action is. It
-cares whether the action should be allowed, based on policy, risk, trust, and
-human approval.
+cares whether the action should be allowed, based on policy, risk, trust,
+identity, and evidence.
+
+> **Analogy:** AVS is like a Kubernetes admission controller for autonomous
+> systems: it intercepts agent intent before state mutation, validates identity,
+> policy, and risk, then admits, denies, or escalates before execution.
 
 ---
 
@@ -218,67 +241,76 @@ layer** that sits between agent intent and real-world action.
 
 | Product | What It Does | How AVS Complements It |
 |---------|-------------|------------------------|
-| **LangSmith** | Observability a logs what agents did | LangSmith observes after the fact. AVS **controls** whether actions execute in the first place. |
-| **Guardrails AI** | Output validation a checks LLM responses | Guardrails validates text outputs. AVS governs **runtime actions** (tool calls, file access, APIs). |
-| **Prompt Firewall** | Input/output filtering a inspects prompts | Prompt firewalls inspect text. AVS gates **execution** (tools, files, APIs). |
-| **OPA/Gatekeeper** | Policy engine a makes authorization decisions | OPA makes policy decisions. AVS adds agent-aware adapters, cryptographic receipts, audit chains, and approval workflows. |
-| **Lakera/HiddenLayer** | AI security a prompt injection, data loss prevention | AI security tools focus on model-layer threats. AVS is a **runtime constraint engine** for agent actions. |
+| **LangSmith** | Observability  logs what agents did | LangSmith observes after the fact. AVS **controls** whether actions execute in the first place. |
+| **Guardrails AI** | Output validation  checks LLM responses | Guardrails validates text outputs. AVS governs **runtime actions** (tool calls, file access, APIs). |
+| **Prompt Firewall** | Input/output filtering  inspects prompts | Prompt firewalls inspect text. AVS gates **execution** (tools, files, APIs). |
+| **OPA/Gatekeeper** | Policy engine  makes authorization decisions | OPA makes policy decisions. AVS adds agent-aware adapters, cryptographic receipts, audit chains, and approval workflows. |
+| **Lakera/HiddenLayer** | AI security  prompt injection, data loss prevention | AI security tools focus on model-layer threats. AVS is a **runtime constraint engine** for agent actions. |
 
 ---
 
 ## What Is Included
 
 ```
-v0.1.0 Core Gateway
-    aaa Intercept a Decide a Record pipeline
-    aaa Four decisions: allow, deny, require_approval, quarantine
-    aaa Policy engine (23 declarative rules, YAML/JSON)
-    aaa Risk engine (8-dimension scoring)
-    aaa Trust memory (time-weighted decay)
-    aaa Ed25519 cryptographic receipts
-    aaa Immutable SHA-256 audit chain
+v0.1.0  Core Gateway
+         Intercept  Decide  Record pipeline
+         Four decisions: allow, deny, require_approval, quarantine
+         Policy engine (23 declarative rules, YAML/JSON)
+         Risk engine (8-dimension scoring)
+         Trust memory (time-weighted decay)
+         Ed25519 cryptographic receipts
+         Immutable SHA-256 audit chain
 
-v0.2.0 Persistent Approval Loop
-    aaa SQLite-backed approval queue
-    aaa Human approve/deny workflow
-    aaa REST API (FastAPI)
-    aaa Timeline visualization
+v0.2.0  Persistent Approval Loop
+         SQLite-backed approval queue
+         Human approve/deny workflow
+         REST API (FastAPI)
+         Timeline visualization
 
-v0.3.0 Filesystem Physics
-    aaa Path canonicalization (prevents traversal)
-    aaa Sandboxed read/write/delete
-    aaa Real file I/O with security boundaries
+v0.3.0  Filesystem Physics
+         Path canonicalization (prevents traversal)
+         Sandboxed read/write/delete
+         Real file I/O with security boundaries
 
-v0.3.1 Developer Adoption
-    aaa @governed_tool decorator
-    aaa Zero-friction: one line, no rewrites
-    aaa Bring-your-own-tools model
+v0.3.1  Developer Adoption
+         @governed_tool decorator
+         Zero-friction: one line, no rewrites
+         Bring-your-own-tools model
 
-v0.3.2 Network Physics
-    aaa HTTP GET allowlist
-    aaa SSRF prevention (metadata, private IPs)
-    aaa POST/mutation blocking
-    aaa Redirect severance
-    aaa Response size caps + timeout
+v0.3.2  Network Physics
+         HTTP GET allowlist
+         SSRF prevention (metadata, private IPs)
+         POST/mutation blocking
+         Redirect severance
+         Response size caps + timeout
 
-v0.3.3 LangChain Integration
-    aaa AVSGovernedTool wrapper
-    aaa Optional dependency (no bloat)
-    aaa Universal control plane proof
+v0.3.3  LangChain Integration
+         AVSGovernedTool wrapper
+         Optional dependency (no bloat)
+         Universal control plane proof
 
-v0.3.4 Developer Release Foundation
-    aaa pip install -e .
-    aaa avs demo CLI
-    aaa 4 quickstart examples
-    aaa README + architecture docs
-    aaa Apache 2.0 license
-    aaa CI (GitHub Actions)
+v0.3.4  Developer Release Foundation
+         pip install -e .
+         avs demo CLI
+         4 quickstart examples
+         README + architecture docs
+         Apache 2.0 license
+         CI (GitHub Actions)
 
-v0.3.5 Public Launch Readiness Pack a CURRENT
-    aaa README polish, launch assets
-    aaa Show HN post, outreach templates
-    aaa FAQ, competitive positioning
-    aaa 470 tests, zero failures
+v0.3.5  Public Launch Readiness Pack
+         README polish, launch assets
+         Show HN post, outreach templates
+         FAQ, competitive positioning
+         Standing watch template
+
+v0.3.6  ASR-1 Receipt Standard + Agent Identity Draft   CURRENT
+         ASR-1 draft receipt format (portable, verifiable)
+         AgentIdentity model (accountable principals)
+         ToolManifest registration (execution surfaces)
+         Receipt signing + verification CLI
+         Tamper-evident linked hash chain
+         581 tests, zero failures
+         docs/ASR_1_RECEIPT_STANDARD.md
 ```
 
 ---
@@ -293,17 +325,17 @@ Universal semantic intercept. Every action becomes an `ActionRequest`:
 
 ```python
 ActionRequest(
-  action_type=ActionType.API,      # file, api, payment, deployment...
-  tool_name="deploy_to_production",   # any tool name
-  operation="deploy_prod",       # any operation
-  parameters={...},           # any parameters
-  context={"environment": "production"}, # any context
+    action_type=ActionType.API,           # file, api, payment, deployment...
+    tool_name="deploy_to_production",     # any tool name
+    operation="deploy_prod",              # any operation
+    parameters={...},                     # any parameters
+    context={"environment": "production"}, # any context
 )
 ```
 
-The Gateway evaluates policy, risk, and trust. It returns a decision.
-**It does not care what the tool does.** It cares whether the action should
-be allowed.
+The Gateway evaluates policy, risk, trust, identity, and tool manifest
+registration. It returns a decision. **It does not care what the tool does.**
+It cares whether the action should be allowed.
 
 ### The Physics (Sandboxes)
 
@@ -326,38 +358,29 @@ organizations to govern their own.**
 ## Roadmap
 
 ```
-v0.3.5 Public Launch Readiness Pack    a CURRENT
-    README polish, launch assets,
-    Show HN post, outreach templates,
-    FAQ, competitive positioning
+v0.3.6  ASR-1 Receipt Standard + Agent Identity Draft   CURRENT
+        ASR-1 draft receipt format, AgentIdentity model,
+        ToolManifest registration, receipt signing + verification CLI,
+        tamper-evident linked hash chain, 581 tests
 
-v0.3.6 Dashboard Mission Control
-    Unified event view across all adapters
-    Approval queue for LangChain/custom actions
-    Real-time timeline
-
-v0.4.0 Design Partner Staging
-    First real company, real workflow
-    Pilot report + testimonial
-
-v0.4.1 Production Connectors
-    Slack, Stripe (test mode), database examples
-
-v0.5.0 Enterprise Hardening
-    Auth, RBAC, multi-tenancy
-    Compliance evidence export (future roadmap)
-    Policy packs
-    SIEM integrations
+v0.4.0  Verifiable Identity Runtime (signed agent actions)
+v0.4.1  Tool Manifest Integrity (tamper detection)
+v0.4.2  Audit Export (CSV/JSON/CloudEvents/OpenTelemetry)
+v0.5.0  Enterprise Control Room (dashboard, RBAC, policy packs)
 ```
 
 Enterprise features will be proprietary/commercial add-ons. The open-source
 core remains free under Apache 2.0.
 
+**Status:** Alpha. AVS is production-grade code (581 tests, zero failures)
+but the API and receipt format may change as we learn from real deployments.
+We recommend starting with non-critical workflows.
+
 ---
 
 ## License
 
-**Core**: [Apache License 2.0](LICENSE) a free for commercial and
+**Core**: [Apache License 2.0](LICENSE)  free for commercial and
 non-commercial use, including an explicit patent license grant.
 
 **Enterprise features** (future: hosted dashboard, SSO, compliance packs,
@@ -376,5 +399,4 @@ All contributors must sign a Contributor License Agreement (coming soon).
 
 > **Every agent action gets a receipt.**
 >
-> AVS Gateway a Runtime Permission Layer for AI Agents
-
+> AVS Gateway  Runtime Permission Layer for AI Agents

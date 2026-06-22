@@ -1,0 +1,50 @@
+{
+  "asr_version": "1.0-draft",
+  "receipt_id": "5b50f731-13b2-4bce-9190-03d1a55e3719",
+  "request_id": "930480be-56f5-457d-ad34-6562f699db07",
+  "timestamp_ns": 1781969882037496665,
+  "agent_identity": {
+    "agent_id": "report_agent_001",
+    "agent_type": "",
+    "environment": "",
+    "privilege_level": "",
+    "public_key_fingerprint": null
+  },
+  "action": {
+    "action_type": "file",
+    "tool_name": "file_read",
+    "operation": "read",
+    "parameter_hash": "sha256:41ec3f8d29d156b4321d6807bc40c51c6283a94c846d6f22096d6bfb60629448",
+    "context_hash": "sha256:6fecfdd84bfe8a8ffe72e6a0303a9cc670e4026b8373ec1b04bdec27ad60ef57"
+  },
+  "tool_manifest": {
+    "tool_name": null,
+    "module_path": null,
+    "function_name": null,
+    "source_hash": null,
+    "registered_at": null,
+    "registered_by": null,
+    "policy_binding": null
+  },
+  "governance": {
+    "policy_ids_evaluated": [
+      "rule_safe_read"
+    ],
+    "winning_policy_id": "rule_safe_read",
+    "risk_score": 5.0,
+    "trust_score": 85.0,
+    "decision": "allow",
+    "decision_reason": "Low risk file read in sandbox"
+  },
+  "execution": {
+    "executed": true,
+    "status": "executed",
+    "latency_ms": 0.0,
+    "human_approver_id": null
+  },
+  "ledger": {
+    "previous_receipt_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "receipt_hash": "sha256:bd8ed423305008ed8febf567b83bcfe31a5afaa65c2f8fd7fc94b18ed08d1444",
+    "gateway_signature": "ed25519:AzTaKbW194j7w8g7MfJ9jCGQiefwIZpJxFHTBOg65KkRMSUi7bx7kpTyOrOxPgNoxqE/G04rQqq3Ykr7LSx9Ag=="
+  }
+}

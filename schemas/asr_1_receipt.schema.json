@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://avsgateway.io/schemas/asr_1_receipt.schema.json",
+  "title": "ASR-1 Receipt",
+  "description": "ASR-1 (Action Standard Receipt) is an experimental draft receipt format for AI agent action decisions. It is NOT an official external standard. It is an AVS-native receipt profile.",
+  "type": "object",
+  "required": ["asr_version", "receipt_id", "request_id", "timestamp_ns", "agent_identity", "action", "governance", "execution", "ledger"],
+  "properties": {
+    "asr_version": {
+      "type": "string",
+      "description": "ASR version identifier",
+      "enum": ["1.0-draft"]
+    },
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this receipt"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifier of the original action request"
+    },
+    "timestamp_ns": {
+      "type": "integer",
+      "description": "Timestamp in nanoseconds since epoch"
+    },
+    "agent_identity": {
+      "type": "object",
+      "required": ["agent_id"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "Unique identifier of the agent"
+        },
+        "agent_type": {
+          "type": "string",
+          "description": "Classification of the agent (e.g. coding, deployment, support)"
+        },
+        "environment": {
+          "type": "string",
+          "description": "Environment the agent operates in (dev, staging, prod)"
+        },
+        "privilege_level": {
+          "type": "string",
+          "description": "Privilege tier (read_only, standard, privileged, admin)"
+        },
+        "public_key_fingerprint": {
+          "type": ["string", "null"],
+          "description": "SHA-256 fingerprint of the agent's Ed25519 public key"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["action_type", "tool_name", "operation", "parameter_hash", "context_hash"],
+      "properties": {
+        "action_type": {
+          "type": "string",
+          "description": "Category of action (file, api, email, payment, database, security_scan)"
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "Name of the tool being invoked"
+        },
+        "operation": {
+          "type": "string",
+          "description": "Operation being performed"
+        },
+        "parameter_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 hash of redacted parameters (no raw secrets)"
+        },
+        "context_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 hash of execution context"
+        }
+      }
+    },
+    "tool_manifest": {
+      "type": "object",
+      "properties": {
+        "tool_name": {
+          "type": ["string", "null"],
+          "description": "Registered tool name"
+        },
+        "module_path": {
+          "type": ["string", "null"],
+          "description": "Python module path"
+        },
+        "function_name": {
+          "type": ["string", "null"],
+          "description": "Function name within module"
+        },
+        "source_hash": {
+          "type": ["string", "null"],
+          "description": "Best-effort SHA-256 of source code (informational)"
+        },
+        "registered_at": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 registration timestamp"
+        },
+        "registered_by": {
+          "type": ["string", "null"],
+          "description": "Who registered the tool"
+        },
+        "policy_binding": {
+          "type": ["string", "null"],
+          "description": "Bound policy set"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "required": ["decision", "decision_reason", "risk_score", "trust_score"],
+      "properties": {
+        "policy_ids_evaluated": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "IDs of policies that were evaluated"
+        },
+        "winning_policy_id": {
+          "type": ["string", "null"],
+          "description": "ID of the policy that determined the decision"
+        },
+        "risk_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Risk score at decision time"
+        },
+        "trust_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Trust score at decision time"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["allow", "deny", "require_approval", "quarantine"],
+          "description": "The decision rendered by the gateway"
+        },
+        "decision_reason": {
+          "type": "string",
+          "description": "Human-readable explanation for the decision"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["executed", "status"],
+      "properties": {
+        "executed": {
+          "type": "boolean",
+          "description": "Whether the action was executed"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["executed", "blocked", "blocked_pending_approval", "quarantined", "unknown"],
+          "description": "Execution outcome status"
+        },
+        "latency_ms": {
+          "type": "number",
+          "description": "Processing latency in milliseconds"
+        },
+        "human_approver_id": {
+          "type": ["string", "null"],
+          "description": "ID of human who approved/denied"
+        }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "required": ["previous_receipt_hash", "receipt_hash"],
+      "properties": {
+        "previous_receipt_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Hash of the previous receipt in the chain"
+        },
+        "receipt_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Hash of this receipt"
+        },
+        "gateway_signature": {
+          "type": ["string", "null"],
+          "description": "Ed25519 or mock signature of the receipt hash"
+        }
+      }
+    }
+  }
+}
