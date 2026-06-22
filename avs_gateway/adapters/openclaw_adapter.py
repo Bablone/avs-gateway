@@ -178,4 +178,3 @@ class OpenClawAdapter(BaseAdapter):
             return True
         except ValueError:
             return False
-

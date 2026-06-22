@@ -468,4 +468,3 @@ class TestCreateActionRequestFactory:
                 operation="read",
             )
             assert request.validate() is True
-

@@ -5,7 +5,6 @@ Provides REST API endpoints for intercepting actions,
 retrieving receipts, and monitoring gateway health.
 """
 
-import json
 import logging
 import time
 import os

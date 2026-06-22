@@ -28,7 +28,7 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
-    logger.warning("cryptography library not available; using mock signing")
+    logger.debug("cryptography library not available; using mock signing")
 
 
 @dataclass(frozen=True)
@@ -382,4 +382,3 @@ class MerkleTree:
             current_index //= 2
 
         return proof
-

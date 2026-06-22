@@ -15,7 +15,7 @@ import os
 import subprocess
 
 # Package version
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 
 def _get_repo_root() -> str:
@@ -54,7 +54,7 @@ def cmd_demo(_args):
     SEP = "=" * 58
 
     print(SEP)
-    print("  AVS Gateway Demo - Runtime Permission Layer")
+    print("  AVS Gateway Demo — Runtime Permission Layer")
     print(SEP)
     print()
 
@@ -100,7 +100,7 @@ def cmd_demo(_args):
     print(f"           Decision : {d2.decision_type.value}")
     print(f"           Reason   : {d2.reason}")
     print(f"           Receipt  : {r2.receipt_hash[:24]}...")
-    print(f"           -> Tool did NOT execute")
+    print(f"           → Tool did NOT execute")
     print()
 
     # --- Scenario 3: REQUIRE_APPROVAL ---
@@ -119,7 +119,7 @@ def cmd_demo(_args):
     print(f"           Decision : {d3.decision_type.value}")
     print(f"           Reason   : {d3.reason}")
     print(f"           Receipt  : {r3.receipt_hash[:24]}...")
-    print(f"           -> Queued for human approval")
+    print(f"           → Queued for human approval")
     print()
 
     # --- Evidence summary ---
@@ -161,8 +161,8 @@ def cmd_quickstart(_args):
 
     for filename, description in examples:
         path = os.path.join(examples_dir, filename)
-        status = "[OK]" if os.path.isfile(path) else "[FAIL]"
-        print(f"  {status} {filename:30s} - {description}")
+        status = "✓" if os.path.isfile(path) else "✗"
+        print(f"  {status} {filename:30s} — {description}")
 
     print()
     print("Run any example:")
@@ -173,7 +173,7 @@ def cmd_quickstart(_args):
 def main():
     """Entry point for the `avs` console script."""
     if len(sys.argv) < 2:
-        print("AVS Gateway - Runtime Permission Layer for AI Agents")
+        print("AVS Gateway — Runtime Permission Layer for AI Agents")
         print("Every agent action gets a receipt.")
         print()
         print("Usage: avs <command>")

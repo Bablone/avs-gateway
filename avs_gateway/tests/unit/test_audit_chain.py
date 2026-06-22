@@ -264,4 +264,3 @@ class TestExportCSV:
         lines = csv_str.strip().split("\n")
         assert len(lines) == 4  # header + 3 entries
         assert "sequence_number" in lines[0]
-

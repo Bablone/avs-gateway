@@ -562,4 +562,3 @@ class PolicyEngine:
                 logger.warning("Unknown operator '%s' in condition; treating as False", op)
                 return False
         return True
-

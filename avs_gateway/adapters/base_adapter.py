@@ -165,4 +165,3 @@ class AdapterRegistry:
     def __contains__(self, name: str) -> bool:
         """Check if an adapter name is registered."""
         return name in self._adapters
-

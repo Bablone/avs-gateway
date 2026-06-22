@@ -27,4 +27,3 @@ __all__ = [
     "SecurityScanOperation",
     "create_action_request",
 ]
-

@@ -7,6 +7,7 @@ fail-closed behavior, trust memory updates, and statistics accumulation.
 
 
 
+from pathlib import Path
 import pytest
 
 from avs_gateway.models.action_request import ActionType, create_action_request
@@ -27,7 +28,7 @@ def gateway():
     """Return a fully configured Gateway instance with default policies."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        "avs_gateway/config/default_policies.yaml"
+        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -515,4 +516,3 @@ class TestGetStats:
         )
         decision = gateway.intercept(request)
         assert decision.processing_time_ms >= 0.0
-

@@ -338,4 +338,3 @@ class TestObservationLimits:
         with memory._lock:
             record = memory._agents["agent-001"]
             assert len(record.observations) <= 1000
-

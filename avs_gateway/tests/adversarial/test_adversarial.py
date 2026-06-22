@@ -9,6 +9,7 @@ fail-closed design.
 
 
 
+from pathlib import Path
 import pytest
 import threading
 import time
@@ -31,7 +32,7 @@ def gateway():
     """Return a fully configured Gateway with default policies."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        "avs_gateway/config/default_policies.yaml"
+        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -47,7 +48,7 @@ def fresh_gateway():
     """Return a Gateway with a fresh audit chain."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        "avs_gateway/config/default_policies.yaml"
+        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -619,4 +620,3 @@ class TestPolicyInjection:
         )
         decision = gateway.intercept(request)
         assert decision.decision_type == DecisionType.ALLOW
-

@@ -353,4 +353,3 @@ class TestMerkleInclusionProof:
         proof = tree.proof(0)
         # Only one level in the tree, so no siblings needed
         assert len(proof) == 0
-

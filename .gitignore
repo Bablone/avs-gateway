@@ -1,24 +1,26 @@
+# Virtual environments
 .venv/
 venv/
 env/
 
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.dist-info/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
 
+# Test cache
 .pytest_cache/
-.coverage
-htmlcov/
 
-.DS_Store
-Thumbs.db
+# IDE
 .vscode/
 .idea/
 
-*.log
-
-# AVS runtime persistence
-data/
-*.sqlite3
-*.db
+# OS
+.DS_Store
+Thumbs.db

@@ -281,4 +281,3 @@ def create_action_request(
         session_id=session_id,
         agent_version=agent_version,
     )
-

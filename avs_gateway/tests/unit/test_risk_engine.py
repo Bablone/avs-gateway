@@ -453,4 +453,3 @@ class TestScoreOtherOperations:
         )
         score = engine.score(request)
         assert score.raw_dimensions["scope"] >= 90
-

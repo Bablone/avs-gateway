@@ -413,4 +413,3 @@ class RiskEngine:
             Historical behavior score of 50 (neutral).
         """
         return 50
-

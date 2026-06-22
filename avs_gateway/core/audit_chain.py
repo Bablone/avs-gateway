@@ -219,4 +219,3 @@ class AuditChain:
         """Return entries whose indices fall in ``[start, end)``."""
         with self._lock:
             return list(self._entries[start:end])
-

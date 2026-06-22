@@ -10,6 +10,7 @@ chain integrity, trust updates, receipt verification, and thread safety.
 
 
 
+from pathlib import Path
 import pytest
 import threading
 import time
@@ -32,7 +33,7 @@ def gateway():
     """Return a fully configured Gateway with default policies."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        "avs_gateway/config/default_policies.yaml"
+        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -48,7 +49,7 @@ def fresh_gateway():
     """Return a Gateway with fresh subsystems."""
     policy_engine = PolicyEngine()
     policy_engine.load_policies(
-        "avs_gateway/config/default_policies.yaml"
+        str(Path(__file__).resolve().parents[2] / "config" / "default_policies.yaml")
     )
     return Gateway(
         policy_engine=policy_engine,
@@ -665,4 +666,3 @@ class TestStatsAccumulation:
         assert stats["decisions"]["deny"] == 2
         assert stats["decisions"]["quarantine"] == 1
         assert stats["decisions"]["require_approval"] == 4
-

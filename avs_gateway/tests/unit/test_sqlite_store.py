@@ -21,24 +21,21 @@ from avs_gateway.storage.sqlite_store import SqliteStore
 
 DB_PATH = os.path.join(tempfile.gettempdir(), "avs_test_gateway.sqlite3")
 
-def remove_db_with_retry(path: str, retries: int = 10, delay: float = 0.05) -> None:
-    """Remove SQLite test DB on Windows even if handles close slightly late."""
-    if not os.path.exists(path):
-        return
-
+def _remove_db_file_safely(path: str) -> None:
+    """Remove SQLite test DB with Windows-safe retry semantics."""
     gc.collect()
-
-    last_error = None
-    for _ in range(retries):
+    for _ in range(20):
         try:
-            os.remove(path)
+            if os.path.exists(path):
+                os.remove(path)
             return
-        except PermissionError as exc:
-            last_error = exc
+        except PermissionError:
             gc.collect()
-            time.sleep(delay)
+            time.sleep(0.05)
 
-    raise last_error
+    # Final attempt lets pytest show the real error if still locked.
+    if os.path.exists(path):
+        os.remove(path)
 
 
 
@@ -46,13 +43,13 @@ def remove_db_with_retry(path: str, retries: int = 10, delay: float = 0.05) -> N
 def store():
     """Fresh SqliteStore for each test."""
     if os.path.exists(DB_PATH):
-        remove_db_with_retry(DB_PATH)
+        _remove_db_file_safely(DB_PATH)
     s = SqliteStore(db_path=DB_PATH)
     s.init_schema()
     yield s
     s.close_all()
     if os.path.exists(DB_PATH):
-        remove_db_with_retry(DB_PATH)
+        _remove_db_file_safely(DB_PATH)
 
 
 @pytest.fixture
