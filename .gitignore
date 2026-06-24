@@ -5,3 +5,22 @@ __pycache__/
 data/
 *.egg-info/
 sandbox/output.txt
+
+# Internal / non-public project materials
+docs/LAUNCH_ASSETS/
+docs/research/
+AVS_v0.3.6_BUILD_STRATEGY.md
+plan-research-v0.3.6.md
+docs/RESEARCH_AGENTIC_PAYMENTS_2026.md
+docs/STRATEGIC_POSITIONING_AGENTIC_PAYMENTS_2026.md
+*STATE_OF_THE_UNION*
+*FEATURE_AUDIT*
+*SECURITY_GAPS*
+*RESEARCH_3_5*
+*RESEARCH_ANALYSIS*
+*RESEARCH_ANLYSIS*
+*POSITIONING*
+*STRATEGY*
+*PILOT*
+*PRICING*
+*OUTREACH*
