@@ -1,0 +1,19 @@
+
+# Exclude internal materials from git archive exports
+docs/LAUNCH_ASSETS/** export-ignore
+docs/research/** export-ignore
+AVS_v0.3.6_BUILD_STRATEGY.md export-ignore
+plan-research-v0.3.6.md export-ignore
+docs/RESEARCH_AGENTIC_PAYMENTS_2026.md export-ignore
+docs/STRATEGIC_POSITIONING_AGENTIC_PAYMENTS_2026.md export-ignore
+*STATE_OF_THE_UNION* export-ignore
+*FEATURE_AUDIT* export-ignore
+*SECURITY_GAPS* export-ignore
+*RESEARCH_3_5* export-ignore
+*RESEARCH_ANALYSIS* export-ignore
+*RESEARCH_ANLYSIS* export-ignore
+*POSITIONING* export-ignore
+*STRATEGY* export-ignore
+*PILOT* export-ignore
+*PRICING* export-ignore
+*OUTREACH* export-ignore
