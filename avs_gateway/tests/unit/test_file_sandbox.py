@@ -206,6 +206,131 @@ class TestFileSandboxDeleteBlocked:
         assert r2.status == "success"
 
 
+class TestFileSandboxONoFollow:
+    """Tests for O_NOFOLLOW TOCTOU defense.
+
+    TOCTOU (Time-of-Check to Time-of-Use) attack: a malicious actor
+    creates a regular file at the target path, we validate it is safe,
+    then they swap it for a symlink pointing outside the sandbox.
+    O_NOFOLLOW prevents the file operation from following symlinks
+    at the OS level, closing this race condition.
+    """
+
+    def test_symlink_read_blocked_by_onofollow(self, fresh_sandbox):
+        """Reading a symlink with O_NOFOLLOW raises an error."""
+        target = os.path.join(fresh_sandbox.root, "target.txt")
+        link = os.path.join(fresh_sandbox.root, "link.txt")
+        with open(target, "w") as f:
+            f.write("real content")
+        try:
+            os.symlink(target, link)
+        except (OSError, NotImplementedError):
+            pytest.skip("Symlink creation not supported on this platform")
+
+        # _open_nofollow should reject the symlink (ELOOP=symlink loop or O_NOFOLLOW)
+        with pytest.raises(SandboxSecurityError) as exc_info:
+            fresh_sandbox._open_nofollow(
+                fresh_sandbox.root / "link.txt", os.O_RDONLY
+            )
+        error_msg = str(exc_info.value)
+        assert ("O_NOFOLLOW" in error_msg or
+                "Symlink loop" in error_msg or
+                "TOCTOU" in error_msg)
+
+    def test_symlink_write_blocked_by_onofollow(self, fresh_sandbox):
+        """Writing through a symlink pointing outside is blocked.
+
+        Note: symlinks to outside the sandbox may be caught by
+        _canonicalize() (path escape check) OR by O_NOFOLLOW.
+        Either is a valid defense — the file must not be written.
+        """
+        outside_dir = tempfile.mkdtemp(prefix="avs_outside_onofollow_")
+        try:
+            real_file = os.path.join(outside_dir, "real.txt")
+            link = os.path.join(fresh_sandbox.root, "link.txt")
+            try:
+                os.symlink(real_file, link)
+            except (OSError, NotImplementedError):
+                pytest.skip("Symlink creation not supported on this platform")
+
+            # write_file must reject writing through the symlink
+            result = fresh_sandbox.write_file("link.txt", "injected")
+            assert result.status == "blocked"
+            # Blocked by canonicalization (path escape) OR O_NOFOLLOW
+            assert ("O_NOFOLLOW" in result.error or
+                    "Path escapes sandbox" in result.error or
+                    "Symlink" in result.error)
+
+            # Verify the outside file was NOT written
+            assert not os.path.exists(real_file) or open(real_file).read() == ""
+        finally:
+            import shutil
+            shutil.rmtree(outside_dir, ignore_errors=True)
+
+    def test_regular_file_read_works(self, fresh_sandbox):
+        """O_NOFOLLOW does not block reading regular files."""
+        fresh_sandbox.write_file("regular.txt", "hello")
+        result = fresh_sandbox.read_file("regular.txt")
+        assert result.status == "success"
+        assert result.content == "hello"
+
+    def test_regular_file_write_works(self, fresh_sandbox):
+        """O_NOFOLLOW does not block writing regular files."""
+        result = fresh_sandbox.write_file("regular.txt", "world")
+        assert result.status == "success"
+        read_result = fresh_sandbox.read_file("regular.txt")
+        assert read_result.content == "world"
+
+    def test_symlink_swap_race_defended(self, fresh_sandbox):
+        """Simulate TOCTOU: symlink swapped after validation.
+
+        Steps:
+          1. Create a real file (passes validation)
+          2. Replace it with a symlink to outside
+          3. The symlink is blocked (by canonicalization escape check
+             or O_NOFOLLOW — either is a valid defense)
+        """
+        outside_dir = tempfile.mkdtemp(prefix="avs_outside_race_")
+        try:
+            outside_file = os.path.join(outside_dir, "stolen.txt")
+            inside_file = os.path.join(fresh_sandbox.root, "race.txt")
+
+            # Step 1: Create a real file (passes validation)
+            with open(inside_file, "w") as f:
+                f.write("initial")
+
+            # Verify initial read works
+            result = fresh_sandbox.read_file("race.txt")
+            assert result.status == "success"
+            assert result.content == "initial"
+
+            # Step 2: Replace with symlink to outside
+            os.remove(inside_file)
+            try:
+                os.symlink(outside_file, inside_file)
+            except (OSError, NotImplementedError):
+                pytest.skip("Symlink creation not supported")
+
+            # Step 3: Symlink is blocked by canonicalization or O_NOFOLLOW
+            result = fresh_sandbox.read_file("race.txt")
+            assert result.status == "blocked"
+            assert ("O_NOFOLLOW" in result.error or
+                    "Path escapes sandbox" in result.error or
+                    "Symlink" in result.error)
+
+            # Outside file must not have been read
+            assert not os.path.exists(outside_file)
+        finally:
+            import shutil
+            shutil.rmtree(outside_dir, ignore_errors=True)
+
+    def test_directory_open_blocked_by_onofollow(self, fresh_sandbox):
+        """Opening a directory with O_WRONLY|O_CREAT should be handled."""
+        os.makedirs(os.path.join(fresh_sandbox.root, "subdir"), exist_ok=True)
+        result = fresh_sandbox.write_file("subdir", "not a file")
+        assert result.status == "blocked"
+
+
 class TestFileSandboxResultStructure:
     """Tests for result dictionary format."""
 

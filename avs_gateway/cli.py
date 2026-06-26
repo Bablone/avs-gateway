@@ -15,7 +15,7 @@ import os
 import subprocess
 
 # Package version
-__version__ = "0.4.0-alpha"
+__version__ = "0.4.1-alpha"
 
 
 def _get_repo_root() -> str:
@@ -149,7 +149,7 @@ def cmd_quickstart(_args):
     if not os.path.isdir(examples_dir):
         print(f"Examples directory not found: {examples_dir}")
         print("Clone the AVS repository to access examples:")
-        print("  git clone https://github.com/avsgateway/avs-gateway")
+        print("  git clone https://github.com/Bablone/avs-gateway")
         return
 
     examples = [

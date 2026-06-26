@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "avs-gateway"
-version = "0.4.0-alpha"
+version = "0.4.1-alpha"
 description = "Runtime Permission Layer for AI Agents"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "AVS Labs", email = "hello@avsgateway.io"}
+    {name = "Ally Mgude", email = "allymgudejr@gmail.com"}
 ]
 keywords = [
     "ai", "agents", "governance", "security", "audit",
@@ -49,10 +49,10 @@ dev = [
 avs = "avs_gateway.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/avsgateway/avs-gateway"
-Documentation = "https://github.com/avsgateway/avs-gateway/blob/main/docs/QUICKSTART.md"
-Repository = "https://github.com/avsgateway/avs-gateway"
-Issues = "https://github.com/avsgateway/avs-gateway/issues"
+Homepage = "https://github.com/Bablone/avs-gateway"
+Documentation = "https://github.com/Bablone/avs-gateway/blob/main/docs/QUICKSTART.md"
+Repository = "https://github.com/Bablone/avs-gateway"
+Issues = "https://github.com/Bablone/avs-gateway/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -65,3 +65,4 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-q --tb=short"
+

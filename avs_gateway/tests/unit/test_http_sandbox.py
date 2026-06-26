@@ -527,3 +527,121 @@ class TestStats:
         assert s["timeout_seconds"] == 5
         assert s["allowed_methods"] == ["GET"]
         assert s["blocked_networks"] > 20  # many default ranges
+
+
+# ---------------------------------------------------------------------------
+# DNS Pinning (defense against DNS rebinding)
+# ---------------------------------------------------------------------------
+
+class TestDNSPinning:
+    """Tests that DNS resolution is pinned to prevent rebinding attacks.
+
+    DNS rebinding attack: attacker controls a domain that resolves to a
+    safe/public IP during validation, then re-resolves to a private IP
+    (e.g., 169.254.169.254) during the actual HTTP request. Pinning
+    the validated IP into the URL prevents this.
+    """
+
+    def test_pinned_ip_used_in_request_url(self, sandbox):
+        """The resolved IP (not hostname) must be in the request URL."""
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", return_value=[
+            (2, 1, 6, "", ("93.184.216.34", 0))
+        ]):
+            with patch("avs_gateway.tools.http_sandbox.requests.request") as mock_req:
+                mock_req.return_value = MagicMock(status_code=200, headers={})
+                mock_req.return_value.iter_content.return_value = [b"ok"]
+                sandbox.get("https://example.com/path?q=1")
+
+                call_args = mock_req.call_args
+                requested_url = call_args[0][1]  # second positional arg (URL)
+                assert "93.184.216.34" in requested_url
+                assert "example.com" not in requested_url
+                # Path and query must be preserved
+                assert "/path?q=1" in requested_url
+
+    def test_host_header_preserved(self, sandbox):
+        """Original hostname must be in the Host header for TLS/SNI."""
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", return_value=[
+            (2, 1, 6, "", ("93.184.216.34", 0))
+        ]):
+            with patch("avs_gateway.tools.http_sandbox.requests.request") as mock_req:
+                mock_req.return_value = MagicMock(status_code=200, headers={})
+                mock_req.return_value.iter_content.return_value = [b"ok"]
+                sandbox.get("https://example.com/")
+
+                call_kwargs = mock_req.call_args[1]
+                passed_headers = call_kwargs.get("headers", {})
+                assert passed_headers.get("Host") == "example.com"
+
+    def test_dns_rebinding_blocked_by_pinning(self, sandbox):
+        """DNS rebinding: different IP at request time is ignored."""
+        # Phase 1: DNS resolves to safe IP during validation
+        resolved_ip = "93.184.216.34"
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", return_value=[
+            (2, 1, 6, "", (resolved_ip, 0))
+        ]):
+            with patch("avs_gateway.tools.http_sandbox.requests.request") as mock_req:
+                mock_req.return_value = MagicMock(status_code=200, headers={})
+                mock_req.return_value.iter_content.return_value = [b"ok"]
+                result = sandbox.get("https://example.com/")
+                assert result.status == "success"
+
+                # The request MUST have used the pinned IP, not re-resolved
+                call_args = mock_req.call_args
+                requested_url = call_args[0][1]  # second positional arg (URL)
+                assert resolved_ip in requested_url
+                # If requests re-resolved DNS, it could hit 169.254.169.254
+                # Pinning prevents this.
+
+    def test_pinned_ip_with_port_preserved(self, sandbox):
+        """Non-standard ports are preserved in the pinned URL."""
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", return_value=[
+            (2, 1, 6, "", ("93.184.216.34", 0))
+        ]):
+            with patch("avs_gateway.tools.http_sandbox.requests.request") as mock_req:
+                mock_req.return_value = MagicMock(status_code=200, headers={})
+                mock_req.return_value.iter_content.return_value = [b"ok"]
+                sandbox.get("https://example.com:8443/api")
+
+                call_args = mock_req.call_args
+                requested_url = call_args[0][1]  # second positional arg (URL)
+                # Port must be preserved
+                assert "93.184.216.34:8443" in requested_url
+
+    def test_pinned_connection_error_raises_security_error(self, sandbox):
+        """Connection failure to pinned IP raises HTTPSandboxSecurityError."""
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", return_value=[
+            (2, 1, 6, "", ("93.184.216.34", 0))
+        ]):
+            with patch(
+                "avs_gateway.tools.http_sandbox.requests.request",
+                side_effect=requests.ConnectionError("refused"),
+            ):
+                result = sandbox.get("https://example.com/")
+                assert result.status == "blocked"
+                assert "pinned IP" in result.reason or "Connection" in result.reason
+
+    def test_dns_ttl_zero_domains_pinned_safely(self, sandbox):
+        """Domains with TTL=0 (immediate re-resolution) are still safe."""
+        # Even if the DNS server would return a different IP on second query,
+        # the first resolved IP is pinned and used for the connection.
+        call_count = 0
+        def fake_getaddrinfo(host, port, *args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return [(2, 1, 6, "", ("93.184.216.34", 0))]
+            # Second call would return malicious IP (simulating TTL=0 rebind)
+            return [(2, 1, 6, "", ("169.254.169.254", 0))]
+
+        with patch("avs_gateway.tools.http_sandbox.socket.getaddrinfo", side_effect=fake_getaddrinfo):
+            with patch("avs_gateway.tools.http_sandbox.requests.request") as mock_req:
+                mock_req.return_value = MagicMock(status_code=200, headers={})
+                mock_req.return_value.iter_content.return_value = [b"ok"]
+                result = sandbox.get("https://example.com/")
+                assert result.status == "success"
+
+                # Request URL must use the FIRST resolved IP (safe one)
+                requested_url = mock_req.call_args[0][1]  # second positional arg (URL)
+                assert "93.184.216.34" in requested_url
+                assert "169.254.169.254" not in requested_url

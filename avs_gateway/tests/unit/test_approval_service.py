@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
@@ -226,3 +227,112 @@ class TestApprovalService:
         assert stats["approved"] == 1
         assert stats["denied"] == 1
         assert stats["executed"] == 0
+
+
+class TestApprovalExpiry:
+    """Tests for the approval expiry daemon."""
+
+    def test_expire_stale_approvals_expires_old_pending(self, fresh_service, sample_action, sample_decision):
+        """_expire_stale_approvals should expire pending approvals past timeout."""
+        aid = fresh_service.create_approval_request(sample_action, sample_decision)
+
+        # Manually backdate the approval to simulate it being created long ago
+        # We do this by directly updating the created_at_ns in the DB
+        store = fresh_service.store
+        ancient_ns = int((time.time() - 600) * 1_000_000_000)  # 10 minutes ago
+        store._conn().execute(
+            "UPDATE approval_requests SET created_at_ns = ? WHERE approval_id = ?",
+            (ancient_ns, aid),
+        )
+
+        expired = fresh_service._expire_stale_approvals()
+        assert expired == 1
+
+        approval = fresh_service.get_approval(aid)
+        assert approval["status"] == "expired"
+        assert approval["decided_by"] == "system"
+        assert "Timeout" in approval["decision_reason"]
+
+    def test_expire_stale_approvals_leaves_fresh_pending(self, fresh_service, sample_action, sample_decision):
+        """_expire_stale_approvals should NOT expire recent pending approvals."""
+        aid = fresh_service.create_approval_request(sample_action, sample_decision)
+
+        expired = fresh_service._expire_stale_approvals()
+        assert expired == 0
+
+        approval = fresh_service.get_approval(aid)
+        assert approval["status"] == "pending"
+
+    def test_expire_trust_event_recorded(self, fresh_service, sample_action, sample_decision):
+        """Expiring an approval should record a negative trust event in the DB."""
+        aid = fresh_service.create_approval_request(sample_action, sample_decision)
+
+        # Backdate and expire
+        ancient_ns = int((time.time() - 600) * 1_000_000_000)
+        fresh_service.store._conn().execute(
+            "UPDATE approval_requests SET created_at_ns = ? WHERE approval_id = ?",
+            (ancient_ns, aid),
+        )
+        fresh_service._expire_stale_approvals()
+
+        # Verify trust event was recorded in the DB
+        trust_events = fresh_service.store.get_trust_events_for_agent("agent-test")
+        expiry_events = [e for e in trust_events if e["reason"] == "approval_expired"]
+        assert len(expiry_events) == 1
+        assert expiry_events[0]["delta"] == -2.0
+
+    def test_audit_event_recorded_on_expiry(self, fresh_service, sample_action, sample_decision):
+        """An audit event should be recorded when an approval expires."""
+        aid = fresh_service.create_approval_request(sample_action, sample_decision)
+
+        ancient_ns = int((time.time() - 600) * 1_000_000_000)
+        fresh_service.store._conn().execute(
+            "UPDATE approval_requests SET created_at_ns = ? WHERE approval_id = ?",
+            (ancient_ns, aid),
+        )
+        fresh_service._expire_stale_approvals()
+
+        timeline = fresh_service.get_approval_timeline(aid)
+        event_types = [e["event_type"] for e in timeline]
+        assert "approval_expired" in event_types
+
+    def test_shutdown_signals_expiry_thread(self, fresh_service):
+        """shutdown() should signal the expiry thread to stop."""
+        fresh_service.shutdown()
+        assert fresh_service._shutdown_event.is_set()
+        assert not fresh_service._expiry_thread.is_alive()
+
+    def test_custom_timeout(self, fresh_service, sample_action, sample_decision):
+        """A custom default_timeout should be respected."""
+        # fresh_service has default 300s; create a new one with 10s timeout
+        store = fresh_service.store
+        trust = fresh_service.trust_memory
+        custom_svc = ApprovalService(store, trust_memory=trust, default_timeout=10)
+
+        aid = custom_svc.create_approval_request(sample_action, sample_decision)
+
+        # Backdate 30 seconds (past 10s timeout)
+        ancient_ns = int((time.time() - 30) * 1_000_000_000)
+        store._conn().execute(
+            "UPDATE approval_requests SET created_at_ns = ? WHERE approval_id = ?",
+            (ancient_ns, aid),
+        )
+
+        expired = custom_svc._expire_stale_approvals()
+        assert expired == 1
+        custom_svc.shutdown()
+
+    def test_expired_approval_cannot_be_approved(self, fresh_service, sample_action, sample_decision):
+        """An expired approval should not be able to be approved."""
+        aid = fresh_service.create_approval_request(sample_action, sample_decision)
+
+        ancient_ns = int((time.time() - 600) * 1_000_000_000)
+        fresh_service.store._conn().execute(
+            "UPDATE approval_requests SET created_at_ns = ? WHERE approval_id = ?",
+            (ancient_ns, aid),
+        )
+        fresh_service._expire_stale_approvals()
+
+        # Try to approve the expired approval
+        ok = fresh_service.approve(aid, "admin", "should fail")
+        assert ok is False

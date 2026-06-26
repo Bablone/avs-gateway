@@ -1,4 +1,4 @@
-"""
+﻿"""
 file_sandbox.py -- Real file sandbox for AVS Gateway v0.3.0-alpha.
 
 Provides read, write, and list operations within a strict sandbox boundary.
@@ -144,6 +144,38 @@ class FileSandbox:
                 f"Size {size} exceeds limit {self._max_file_size}"
             )
 
+    def _open_nofollow(self, path: Path, flags: int) -> int:
+        """Open a file without following symlinks.
+
+        Uses O_NOFOLLOW where available and performs an explicit symlink
+        check for platforms such as Windows where O_NOFOLLOW may not exist.
+        This prevents TOCTOU-style symlink access from being silently allowed.
+        """
+        try:
+            if path.is_symlink():
+                raise SandboxSecurityError(
+                    f"Symlink access blocked (TOCTOU defense): {path}"
+                )
+        except SandboxSecurityError:
+            raise
+        except OSError as exc:
+            raise SandboxSecurityError(
+                f"Cannot inspect path for symlink status: {path}: {exc}"
+            )
+
+        nofollow_flag = getattr(os, "O_NOFOLLOW", 0)
+        try:
+            fd = os.open(str(path), flags | nofollow_flag)
+            return fd
+        except OSError as exc:
+            if exc.errno == 40:
+                raise SandboxSecurityError(
+                    f"Symlink loop detected (TOCTOU defense): {path}"
+                )
+            raise SandboxSecurityError(
+                f"Cannot open file (O_NOFOLLOW): {path}: {exc}"
+            )
+
     # ------------------------------------------------------------------
     # Public: read / write / list
     # ------------------------------------------------------------------
@@ -167,7 +199,18 @@ class FileSandbox:
             # Ensure parent directories exist
             canonical.parent.mkdir(parents=True, exist_ok=True)
 
-            canonical.write_bytes(content_bytes)
+            # Write using O_NOFOLLOW to prevent TOCTOU symlink attacks
+            fd = self._open_nofollow(
+                canonical, os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+            )
+            try:
+                bytes_written = os.write(fd, content_bytes)
+                if bytes_written != len(content_bytes):
+                    raise SandboxSecurityError(
+                        f"Partial write: {bytes_written}/{len(content_bytes)} bytes"
+                    )
+            finally:
+                os.close(fd)
 
             return SandboxResult(
                 status="success",
@@ -222,7 +265,14 @@ class FileSandbox:
                 )
 
             self._check_size(canonical.stat().st_size)
-            content = canonical.read_text(encoding="utf-8")
+
+            # Read using O_NOFOLLOW to prevent TOCTOU symlink attacks
+            fd = self._open_nofollow(canonical, os.O_RDONLY)
+            try:
+                content_bytes = os.read(fd, self._max_file_size)
+                content = content_bytes.decode("utf-8", errors="replace")
+            finally:
+                os.close(fd)
 
             return SandboxResult(
                 status="success",
@@ -333,3 +383,4 @@ class FileSandbox:
             "file_count": file_count,
             "directory_count": dir_count,
         }
+

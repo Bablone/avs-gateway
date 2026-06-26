@@ -359,21 +359,42 @@ class PolicyEngine:
             A PolicyResult describing the outcome.
         """
         evaluated: List[str] = []
+        matches: List[PolicyRule] = []
+
         for rule in self._rules:
             if not rule.enabled:
                 continue
             evaluated.append(rule.name)
             if self._match_rule(rule.condition, action_request):
-                logger.debug(
-                    "Rule '%s' matched for action %s", rule.name, action_request.action_id
-                )
-                return PolicyResult(
-                    matched=True,
-                    matched_rule=rule.name,
-                    decision=rule.decision,
-                    reason=rule.reason,
-                    all_evaluated=evaluated,
-                )
+                matches.append(rule)
+
+        if matches:
+            winner = matches[0]
+
+            # Log conflicts: multiple rules matched with different decisions
+            if len(matches) > 1:
+                decisions = {r.decision for r in matches}
+                if len(decisions) > 1:
+                    logger.warning(
+                        "Policy conflict: %d rules matched with different decisions. "
+                        "Winner: %s (decision=%s). Losers: %s",
+                        len(matches),
+                        winner.name,
+                        winner.decision.value,
+                        [(r.name, r.decision.value) for r in matches[1:]],
+                    )
+
+            logger.debug(
+                "Rule '%s' matched for action %s", winner.name, action_request.action_id
+            )
+            return PolicyResult(
+                matched=True,
+                matched_rule=winner.name,
+                decision=winner.decision,
+                reason=winner.reason,
+                all_evaluated=evaluated,
+            )
+
         logger.debug(
             "No matching rule for action %s; defaulting to %s",
             action_request.action_id,

@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS audit_events (
                         event_type IN (
                             'approval_created', 'approval_approved',
                             'approval_denied', 'approval_executed',
-                            'approval_replay_blocked', 'trust_updated',
+                            'approval_replay_blocked', 'approval_expired', 'trust_updated',
                             'gateway_intercept', 'gateway_decision'
                         )
                     ),

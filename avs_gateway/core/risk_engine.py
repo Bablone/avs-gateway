@@ -39,6 +39,21 @@ class RiskDimension:
 
 
 @dataclass(frozen=True)
+class RiskExplanation:
+    """Human-readable explanation of a risk score.
+
+    Every scoring dimension is broken down so auditors and operators
+    can understand WHY a decision was made. This is the advantage of
+    heuristic scoring over black-box ML: every score is explainable.
+    """
+    overall_score: int
+    classification: str
+    dominant_factor: str  # which dimension had the highest weighted score
+    dimension_breakdown: Dict[str, Dict[str, Any]]
+    human_readable: str  # one-sentence summary
+
+
+@dataclass(frozen=True)
 class RiskScore:
     """
     Aggregated risk score for an ActionRequest.
@@ -48,6 +63,7 @@ class RiskScore:
         classification: Human-readable classification (low/medium/high/critical).
         dimensions: Dictionary of RiskDimension objects with weights.
         raw_dimensions: Dictionary of raw dimension scores.
+        explanation: Structured explanation of how the score was derived.
 
     Methods:
         is_blocking: Return True if the score blocks execution.
@@ -57,6 +73,7 @@ class RiskScore:
     classification: str
     dimensions: Dict[str, RiskDimension]
     raw_dimensions: Dict[str, int]
+    explanation: Optional[RiskExplanation] = None
 
     def is_blocking(self) -> bool:
         """
@@ -173,11 +190,14 @@ class RiskEngine:
 
         classification = self.classify(aggregated)
 
+        explanation = self._explain_score(raw, dimensions, aggregated, classification)
+
         return RiskScore(
             value=aggregated,
             classification=classification,
             dimensions=dimensions,
             raw_dimensions=raw,
+            explanation=explanation,
         )
 
     def classify(self, score: int) -> str:
@@ -197,6 +217,46 @@ class RiskEngine:
         if score <= 75:
             return "high"
         return "critical"
+
+    def _explain_score(self, raw: Dict[str, int], dimensions: Dict[str, RiskDimension],
+                       aggregated: int, classification: str) -> RiskExplanation:
+        """Generate human-readable explanation of risk score.
+
+        This is what makes heuristic scoring auditable: every dimension
+        is broken down with its score, weight, and contribution.
+        """
+        # Find dominant factor
+        dominant = max(dimensions.items(), key=lambda x: x[1].value * x[1].weight)
+        dominant_name, dominant_dim = dominant
+
+        # Build dimension breakdown
+        breakdown: Dict[str, Dict[str, Any]] = {}
+        for name, dim in dimensions.items():
+            contribution = dim.value * dim.weight
+            breakdown[name] = {
+                "score": dim.value,
+                "weight": round(dim.weight, 2),
+                "contribution": round(contribution, 1),
+                "max_possible": round(100 * dim.weight, 1),
+            }
+
+        # Generate human-readable summary
+        if classification == "low":
+            human = f"Low risk: {dominant_name} scored {dominant_dim.value}/100 (within acceptable range)"
+        elif classification == "medium":
+            human = f"Medium risk: {dominant_name} elevated at {dominant_dim.value}/100 — requires approval"
+        elif classification == "high":
+            human = f"High risk: {dominant_name} at {dominant_dim.value}/100 — action quarantined"
+        else:
+            human = f"Critical risk: {dominant_name} at {dominant_dim.value}/100 — action denied"
+
+        return RiskExplanation(
+            overall_score=aggregated,
+            classification=classification,
+            dominant_factor=dominant_name,
+            dimension_breakdown=breakdown,
+            human_readable=human,
+        )
 
     def threshold_check(self, score: RiskScore) -> str:
         """

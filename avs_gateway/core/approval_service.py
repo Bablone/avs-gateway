@@ -13,6 +13,7 @@ It enforces replay protection: execute_approved_once() sets status to
 
 import json
 import logging
+import threading
 import time
 from typing import Any, Dict, List, Optional
 
@@ -43,10 +44,15 @@ class ApprovalService:
         self,
         store: SqliteStore,
         trust_memory: Optional[Any] = None,
+        default_timeout: int = 300,  # 5 minutes default
     ) -> None:
         self.store = store
         self.trust_memory = trust_memory
-        logger.info("ApprovalService initialized")
+        self._timeout_seconds = default_timeout
+        self._shutdown_event = threading.Event()
+        self._expiry_thread = threading.Thread(target=self._expiry_loop, daemon=True)
+        self._expiry_thread.start()
+        logger.info("ApprovalService initialized (timeout=%ds)", self._timeout_seconds)
 
     # ------------------------------------------------------------------
     # Create
@@ -353,3 +359,70 @@ class ApprovalService:
     def get_stats(self) -> Dict[str, Any]:
         """Return aggregate approval statistics."""
         return self.store.get_approval_stats()
+
+    # ------------------------------------------------------------------
+    # Expiry daemon
+    # ------------------------------------------------------------------
+
+    def _expiry_loop(self) -> None:
+        """Daemon thread: check for expired pending approvals every 30 seconds.
+
+        Transitions approvals from PENDING to EXPIRED after timeout.
+        This prevents indefinite agent blockage when humans don't review.
+        """
+        while not self._shutdown_event.is_set():
+            self._shutdown_event.wait(30)
+            if self._shutdown_event.is_set():
+                break
+            try:
+                self._expire_stale_approvals()
+            except Exception as exc:
+                logger.error("Approval expiry loop error: %s", exc)
+
+    def _expire_stale_approvals(self) -> int:
+        """Expire all pending approvals past their timeout.
+
+        Returns:
+            Number of approvals expired.
+        """
+        cutoff_ns = int((time.time() - self._timeout_seconds) * 1_000_000_000)
+        pending = self.store.list_pending_approvals()
+        expired_count = 0
+        for approval in pending:
+            created_at_ns = approval.get("created_at_ns", 0)
+            if created_at_ns and created_at_ns < cutoff_ns:
+                approval_id = approval["approval_id"]
+                self.store.update_approval_status(
+                    approval_id, "expired",
+                    decided_by="system", decision_reason=f"Timeout after {self._timeout_seconds}s"
+                )
+                self.store.record_audit_event(
+                    event_type="approval_expired",
+                    agent_id=approval.get("agent_id"),
+                    approval_id=approval_id,
+                    details={"timeout_seconds": self._timeout_seconds},
+                )
+                if self.trust_memory and approval.get("agent_id"):
+                    self.trust_memory.record_behavior(
+                        approval["agent_id"], "approval_expired",
+                        {"approval_id": approval_id, "reason": "timeout"},
+                    )
+                    self.store.record_trust_event(
+                        agent_id=approval["agent_id"],
+                        delta=-2.0,  # TRUST_DELTA_EXPIRED
+                        reason="approval_expired",
+                        approval_id=approval_id,
+                    )
+                expired_count += 1
+                logger.info("Approval %s expired (timeout %ds)",
+                           approval_id, self._timeout_seconds)
+        return expired_count
+
+    def shutdown(self) -> None:
+        """Gracefully shutdown the approval service.
+
+        Signals the expiry thread to stop and waits for it to finish.
+        """
+        self._shutdown_event.set()
+        if hasattr(self, '_expiry_thread') and self._expiry_thread.is_alive():
+            self._expiry_thread.join(timeout=5)

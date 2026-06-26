@@ -1,6 +1,6 @@
-# AVS Gateway
+﻿# AVS Gateway
 
-**Runtime permission layer for AI agents. Every agent action gets a receipt.**
+**Runtime Permission Layer for AI Agents. Every agent action gets a receipt.**
 
 AVS Gateway is an early open-source runtime permission layer for AI agents. It sits before agent tool execution, evaluates the requested action against policy, and produces signed ASR-1 receipts showing whether the action was allowed, denied, paused for approval, or blocked.
 
@@ -14,7 +14,7 @@ It is suitable for:
 * research
 * security review
 * MCP/tool-call governance experiments
-* design-partner pilots
+* evaluation proof-of-concepts
 * agent-action risk reviews
 
 It should not yet be treated as production-hardened security infrastructure without additional hardening, review, and deployment controls.
@@ -105,7 +105,7 @@ Example decision flow:
 get_weather -> allow -> executed
 write_file  -> require_approval -> blocked pending approval
 delete_file -> deny -> blocked
-fetch_url   -> deny -> blocked for private/internal IP risk
+fetch_url   -> deny -> blocked for reserved network / metadata endpoint risk
 run_shell   -> deny -> blocked as unknown/high-risk tool
 ```
 
@@ -177,7 +177,7 @@ It is an execution governance layer for agent actions. It is designed to sit bet
 * `v0.3.5` - public baseline release
 * `v0.3.6` - ASR-1 receipt and agent identity foundation
 * `v0.4.0-alpha` - MCP Guard alpha with signed ASR-1 receipt proof
-* `v0.4.0-alpha.1` - clean public alpha release with internal launch/research assets removed
+* `v0.4.0-alpha.1` - clean public alpha release with non-public materials removed
 
 ## License
 
@@ -203,3 +203,4 @@ Known hardening areas include:
 ---
 
 **Every agent action gets a receipt.**
+

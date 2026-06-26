@@ -5,7 +5,7 @@ Every agent action passes through Gateway.intercept() -> evaluate() -> decide() 
 Fail-closed: any unhandled exception results in a deny decision.
 """
 
-__version__ = "0.4.0-alpha"
+__version__ = "0.4.1-alpha"
 
 from avs_gateway.models.action_request import (
     ActionRequest,

@@ -698,3 +698,135 @@ class TestPolicyPriority:
         )
         result = engine.evaluate(request)
         assert result.matched_rule == "first"
+
+
+# ---------------------------------------------------------------------------
+# Evaluation - conflict logging
+# ---------------------------------------------------------------------------
+
+class TestEvaluateConflictLogging:
+    """Tests for policy conflict detection and logging."""
+
+    def test_single_match_no_conflict(self, engine, file_read_request):
+        """When only one rule matches, no conflict should be logged."""
+        rule = PolicyRule(
+            name="only_rule",
+            description="Only matching rule",
+            priority=1,
+            condition={"action_type": "file"},
+            decision=DecisionType.ALLOW,
+            reason="Only",
+        )
+        engine.add_rule(rule)
+        result = engine.evaluate(file_read_request)
+        assert result.matched is True
+        assert result.matched_rule == "only_rule"
+
+    def test_multiple_matches_same_decision_no_conflict(self, engine):
+        """Multiple matching rules with the SAME decision is not a conflict."""
+        rule1 = PolicyRule(
+            name="allow_files",
+            description="Allow file ops",
+            priority=1,
+            condition={"action_type": "file"},
+            decision=DecisionType.ALLOW,
+            reason="Files allowed",
+        )
+        rule2 = PolicyRule(
+            name="allow_reads",
+            description="Allow read ops",
+            priority=2,
+            condition={"operation": "read"},
+            decision=DecisionType.ALLOW,
+            reason="Reads allowed",
+        )
+        engine.add_rule(rule1)
+        engine.add_rule(rule2)
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+        )
+        result = engine.evaluate(request)
+        assert result.matched_rule == "allow_files"
+        assert result.decision == DecisionType.ALLOW
+
+    def test_multiple_matches_different_decisions_logs_conflict(self, engine, caplog):
+        """Multiple matching rules with DIFFERENT decisions should log a warning."""
+        import logging
+        rule1 = PolicyRule(
+            name="allow_all_reads",
+            description="Allow all reads",
+            priority=1,
+            condition={"operation": "read"},
+            decision=DecisionType.ALLOW,
+            reason="Reads are safe",
+        )
+        rule2 = PolicyRule(
+            name="deny_file_access",
+            description="Deny file access",
+            priority=2,
+            condition={"action_type": "file"},
+            decision=DecisionType.DENY,
+            reason="Files are restricted",
+        )
+        engine.add_rule(rule1)
+        engine.add_rule(rule2)
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+        )
+        with caplog.at_level(logging.WARNING):
+            result = engine.evaluate(request)
+
+        assert result.matched_rule == "allow_all_reads"
+        assert result.decision == DecisionType.ALLOW
+        assert "Policy conflict" in caplog.text
+        assert "allow_all_reads" in caplog.text
+        assert "deny_file_access" in caplog.text
+
+    def test_conflict_logs_loser_rules(self, engine, caplog):
+        """Conflict log should include names of losing rules."""
+        import logging
+        rule1 = PolicyRule(
+            name="winner_rule",
+            description="Wins",
+            priority=1,
+            condition={"operation": "read"},
+            decision=DecisionType.ALLOW,
+            reason="Winner",
+        )
+        rule2 = PolicyRule(
+            name="loser_rule_1",
+            description="Loses",
+            priority=2,
+            condition={"action_type": "file"},
+            decision=DecisionType.DENY,
+            reason="Loser 1",
+        )
+        rule3 = PolicyRule(
+            name="loser_rule_2",
+            description="Also loses",
+            priority=3,
+            condition={"tool_name": "file_tool"},
+            decision=DecisionType.REQUIRE_APPROVAL,
+            reason="Loser 2",
+        )
+        engine.add_rule(rule1)
+        engine.add_rule(rule2)
+        engine.add_rule(rule3)
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+        )
+        with caplog.at_level(logging.WARNING):
+            engine.evaluate(request)
+
+        assert "3 rules matched" in caplog.text
+        assert "loser_rule_1" in caplog.text
+        assert "loser_rule_2" in caplog.text

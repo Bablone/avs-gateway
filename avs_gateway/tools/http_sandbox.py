@@ -347,15 +347,10 @@ class HTTPSandbox:
                     else:
                         logger.debug("Stripped credential header: %s", key)
 
-            # -- Layers 7-9: Execute with protections ----------------------
-            response = requests.request(
-                method.upper(),
-                url,
-                headers=safe_headers,
-                data=data,
-                timeout=self._timeout,
-                allow_redirects=False,      # Layer 7: sever redirect chains
-                stream=True,                # Layer 8: stream for size cap
+            # -- Layers 7-9: Execute with DNS pinning ----------------------
+            # Use pinned IP to prevent DNS rebinding attacks
+            response = self._execute_pinned(
+                method, url, hostname, resolved_ip, safe_headers, data
             )
 
             # Layer 10: Redirect status blocking
@@ -426,6 +421,64 @@ class HTTPSandbox:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _execute_pinned(
+        self,
+        method: str,
+        url: str,
+        hostname: str,
+        resolved_ip: str,
+        headers: Dict[str, str],
+        data: Any,
+    ) -> requests.Response:
+        """Execute HTTP request against a pinned IP address.
+
+        Replaces the hostname in the URL with the pre-validated IP,
+        preserving the original hostname in the Host header.
+        This prevents DNS rebinding attacks where a domain resolves
+        to a safe IP during validation but a malicious IP during request.
+
+        Args:
+            method: HTTP method
+            url: Original URL
+            hostname: Original hostname (for Host header)
+            resolved_ip: Pre-validated IP address to connect to
+            headers: Request headers
+            data: Request body
+
+        Returns:
+            requests.Response
+
+        Raises:
+            HTTPSandboxSecurityError: If the connection fails
+        """
+        # Build a pinned URL with the resolved IP in place of the hostname
+        parsed = urllib.parse.urlparse(url)
+        netloc = resolved_ip
+        if parsed.port:
+            netloc = f"{resolved_ip}:{parsed.port}"
+        pinned_url = urllib.parse.urlunparse(
+            (parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment)
+        )
+
+        # Preserve original hostname in Host header
+        safe_headers = dict(headers) if headers else {}
+        safe_headers["Host"] = hostname
+
+        try:
+            return requests.request(
+                method.upper(),
+                pinned_url,
+                headers=safe_headers,
+                data=data,
+                timeout=self._timeout,
+                allow_redirects=False,
+                stream=True,
+            )
+        except requests.ConnectionError as exc:
+            raise HTTPSandboxSecurityError(
+                f"Connection to pinned IP {resolved_ip} failed: {exc}"
+            )
 
     def _resolve_and_validate(self, hostname: str) -> str:
         """Resolve hostname to IP and validate against blocklist.

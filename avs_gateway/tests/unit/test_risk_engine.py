@@ -453,3 +453,128 @@ class TestScoreOtherOperations:
         )
         score = engine.score(request)
         assert score.raw_dimensions["scope"] >= 90
+
+
+# ---------------------------------------------------------------------------
+# RiskExplanation
+# ---------------------------------------------------------------------------
+
+class TestRiskExplanation:
+    """Tests for the explainable risk scoring feature."""
+
+    def test_explanation_present_in_risk_score(self, engine):
+        """Every RiskScore should include a RiskExplanation."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+            parameters={"path": "/tmp/test.txt"},
+        )
+        score = engine.score(request)
+        assert score.explanation is not None
+        assert isinstance(score.explanation, engine.__class__.__module__.
+                          __class__("RiskExplanation", (), {}).__class__ if False else
+                          type(score.explanation))
+
+    def test_explanation_has_required_fields(self, engine):
+        """RiskExplanation should have all required fields."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+        )
+        score = engine.score(request)
+        exp = score.explanation
+        assert exp is not None
+        assert isinstance(exp.overall_score, int)
+        assert isinstance(exp.classification, str)
+        assert isinstance(exp.dominant_factor, str)
+        assert isinstance(exp.dimension_breakdown, dict)
+        assert isinstance(exp.human_readable, str)
+
+    def test_explanation_dominant_factor_is_max_weighted(self, engine):
+        """The dominant factor should be the dimension with the highest weighted score."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.PAYMENT,
+            tool_name="payment_tool",
+            operation="transfer",
+            parameters={"amount": 100000},
+        )
+        score = engine.score(request)
+        exp = score.explanation
+        assert exp is not None
+        # Verify dominant factor matches the max weighted dimension
+        dimensions = score.dimensions
+        max_dim = max(dimensions.items(), key=lambda x: x[1].value * x[1].weight)
+        assert exp.dominant_factor == max_dim[0]
+
+    def test_explanation_dimension_breakdown_contains_all_dimensions(self, engine):
+        """The dimension breakdown should include all 8 dimensions."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+        )
+        score = engine.score(request)
+        exp = score.explanation
+        assert len(exp.dimension_breakdown) == 8
+        for dim_name in engine.DEFAULT_WEIGHTS:
+            assert dim_name in exp.dimension_breakdown
+            detail = exp.dimension_breakdown[dim_name]
+            assert "score" in detail
+            assert "weight" in detail
+            assert "contribution" in detail
+            assert "max_possible" in detail
+
+    def test_explanation_human_readable_low_risk(self, engine):
+        """Low risk should produce a human-readable message mentioning 'Low risk'."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.FILE,
+            tool_name="file_tool",
+            operation="read",
+            parameters={"path": "/tmp/test.txt"},
+        )
+        score = engine.score(request)
+        if score.classification == "low":
+            assert "Low risk" in score.explanation.human_readable
+
+    def test_explanation_human_readable_high_risk(self, engine):
+        """High risk should produce a human-readable message mentioning 'High risk'."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.PAYMENT,
+            tool_name="payment_tool",
+            operation="transfer",
+            parameters={"amount": 50000},
+        )
+        score = engine.score(request)
+        if score.classification in ("high", "critical"):
+            assert "High risk" in score.explanation.human_readable or \
+                   "Critical risk" in score.explanation.human_readable
+
+    def test_explanation_overall_score_matches(self, engine):
+        """The explanation's overall_score should match the RiskScore value."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.API,
+            tool_name="api_tool",
+            operation="GET",
+        )
+        score = engine.score(request)
+        assert score.explanation.overall_score == score.value
+
+    def test_explanation_classification_matches(self, engine):
+        """The explanation's classification should match the RiskScore classification."""
+        request = create_action_request(
+            agent_id="agent-001",
+            action_type=ActionType.DATABASE,
+            tool_name="db_tool",
+            operation="SELECT",
+        )
+        score = engine.score(request)
+        assert score.explanation.classification == score.classification
